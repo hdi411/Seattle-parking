@@ -1,8 +1,7 @@
-import { MapContainer, TileLayer, useMap, Marker, Popup, Polyline, CircleMarker } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet'
 import { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import allSpots from './parking_lots.json'
-import streetParkingData from './street_parking.json'
 
 function distance(lat1, lng1, lat2, lng2) {
   const R = 6371000
@@ -109,9 +108,6 @@ async function getAiRecommendation(spots, lat, lng) {
   } catch { return null }
 }
 
-const freeLines = streetParkingData?.free_lines || []
-const paidPoints = streetParkingData?.paid_points || []
-
 export default function ParkingMap({
   prefs, onSpotSelect, onFilterOpen, onOrdersOpen, activeOrderCount,
   position, setPosition, zoom, setZoom, spots, setSpots,
@@ -124,7 +120,6 @@ export default function ParkingMap({
 }) {
   const [suggestions, setSuggestions] = useState([])
   const [showSpots, setShowSpots] = useState(true)
-  const [showStreetParking, setShowStreetParking] = useState(false)
   const [userPosition, setUserPosition] = useState(null)
   const [aiCollapsed, setAiCollapsed] = useState(true)
   const lastPositionRef = useRef(null)
@@ -145,6 +140,7 @@ export default function ParkingMap({
     )
   }, [])
 
+  // AI triggers on any position change (home or search)
   useEffect(() => {
     const key = `${position[0].toFixed(4)},${position[1].toFixed(4)}`
     if (lastPositionRef.current === key) return
@@ -252,12 +248,6 @@ export default function ParkingMap({
                 ×
               </button>
             )}
-            {/* Street parking toggle */}
-            <button onClick={() => setShowStreetParking(s => !s)} style={{
-              background: showStreetParking ? '#16a34a' : '#e5e7eb', border: 'none', borderRadius: 8,
-              padding: '6px 10px', color: showStreetParking ? '#fff' : '#6b7280',
-              fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            }}>🛣️</button>
             <button onClick={() => setShowSpots(s => !s)} style={{
               background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
               padding: '6px 10px', color: showSpots ? '#fff' : '#6b7280',
@@ -318,7 +308,9 @@ export default function ParkingMap({
             color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
             display: 'flex', alignItems: 'center', gap: 5,
-          }}>✨ AI</button>
+          }}>
+            ✨ AI
+          </button>
         ) : (
           <div style={{
             marginTop: 8,
@@ -345,7 +337,6 @@ export default function ParkingMap({
         )}
       </div>
 
-      {/* Legend */}
       <div style={{
         position: 'absolute', bottom: 58, left: 10, zIndex: 1000,
         background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: '7px 11px',
@@ -366,16 +357,6 @@ export default function ParkingMap({
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f97316' }}/>✨ AI Pick
           </div>
         )}
-        {showStreetParking && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 16, height: 4, background: '#16a34a', borderRadius: 2 }}/>Free Street
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#eab308' }}/>Paid Meter
-            </div>
-          </>
-        )}
       </div>
 
       <MapContainer
@@ -386,38 +367,9 @@ export default function ParkingMap({
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
-
-        {/* Street parking layer */}
-        {showStreetParking && (
-          <>
-            {freeLines.map((line, i) => (
-              <Polyline
-                key={`free-${i}`}
-                positions={line}
-                pathOptions={{ color: '#16a34a', weight: 4, opacity: 0.75 }}
-              />
-            ))}
-            {paidPoints.map((pt, i) => (
-              <CircleMarker
-                key={`paid-${i}`}
-                center={[pt.lat, pt.lng]}
-                radius={5}
-                pathOptions={{ color: '#ca8a04', fillColor: '#eab308', fillOpacity: 0.85, weight: 1.5 }}
-              >
-                <Popup>
-                  <b>Paid Meter</b><br />
-                  {pt.blockface && <span>{pt.blockface}<br /></span>}
-                  {pt.rate && <span>${pt.rate}/hr</span>}
-                </Popup>
-              </CircleMarker>
-            ))}
-          </>
-        )}
-
         <Marker position={position} icon={userIcon}>
           <Popup>You are here</Popup>
         </Marker>
-
         {showSpots && filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
           const isRecommended = recommendedId && spot.id === recommendedId
