@@ -30,7 +30,6 @@ function parseStepInstruction(step) {
   const type = maneuver?.type || ''
   const modifier = maneuver?.modifier || ''
   const name = step.name || ''
-
   if (type === 'depart') return `Head ${modifier} on ${name || 'the road'}`
   if (type === 'arrive') return 'You have arrived'
   if (type === 'turn') {
@@ -65,12 +64,40 @@ function getManeuverIcon(step) {
   return '⬆️'
 }
 
+function getTurnArrowIcon(step) {
+  const modifier = step.maneuver?.modifier || ''
+  const type = step.maneuver?.type || ''
+  if (type === 'depart' || type === 'arrive') return null
+
+  const rotation =
+    modifier === 'left' ? -90 :
+    modifier === 'sharp left' ? -135 :
+    modifier === 'slight left' ? -45 :
+    modifier === 'right' ? 90 :
+    modifier === 'sharp right' ? 135 :
+    modifier === 'slight right' ? 45 :
+    modifier === 'uturn' ? 180 : 0
+
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width: 36px; height: 36px;
+      background: #1d4ed8;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      font-size: 18px;
+    "><div style="transform: rotate(${rotation}deg); line-height: 1;">➤</div></div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  })
+}
+
 function FollowMap({ userPos, navigating }) {
   const map = useMap()
   useEffect(() => {
-    if (navigating && userPos) {
-      map.setView(userPos, 17, { animate: true })
-    }
+    if (navigating && userPos) map.setView(userPos, 17, { animate: true })
   }, [userPos, navigating])
   return null
 }
@@ -116,9 +143,7 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
   useEffect(() => { fetchRoute(mode) }, [mode])
 
   useEffect(() => {
-    return () => {
-      if (watchRef.current) navigator.geolocation.clearWatch(watchRef.current)
-    }
+    return () => { if (watchRef.current) navigator.geolocation.clearWatch(watchRef.current) }
   }, [])
 
   async function fetchRoute(m) {
@@ -138,8 +163,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
           route.duration
         setRouteInfo({ distance: dist, duration })
         setRemainingDist(dist)
-
-        // Flatten steps from all legs
         const allSteps = route.legs?.flatMap(leg => leg.steps || []) || []
         setSteps(allSteps)
       }
@@ -153,30 +176,17 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
       (pos) => {
         const newPos = [pos.coords.latitude, pos.coords.longitude]
         setLivePos(newPos)
-
-        // Find closest step
         if (steps.length > 0) {
-          let closestIdx = currentStepIdx
-          let minDist = Infinity
           for (let i = currentStepIdx; i < Math.min(currentStepIdx + 5, steps.length); i++) {
             const stepLoc = steps[i].maneuver?.location
             if (stepLoc) {
               const d = distance(newPos[0], newPos[1], stepLoc[1], stepLoc[0])
-              if (d < minDist) { minDist = d; closestIdx = i }
-              // Auto-advance if within 30m of next step
-              if (i === currentStepIdx + 1 && d < 30) {
-                setCurrentStepIdx(i)
-              }
+              if (i === currentStepIdx + 1 && d < 30) setCurrentStepIdx(i)
             }
           }
-          // Update remaining distance to destination
           const distToDest = distance(newPos[0], newPos[1], spot.lat, spot.lng)
           setRemainingDist(distToDest)
-
-          // Check if arrived
-          if (distToDest < 30) {
-            setCurrentStepIdx(steps.length - 1)
-          }
+          if (distToDest < 30) setCurrentStepIdx(steps.length - 1)
         }
       },
       (err) => console.log('GPS error:', err),
@@ -195,7 +205,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', background: '#1a1a2e' }}>
 
-      {/* Top bar */}
       {!navigating ? (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000,
@@ -203,23 +212,13 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 22, color: '#374151', padding: 0,
-          }}>←</button>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#374151', padding: 0 }}>←</button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {spot.name}
-            </div>
-            {spot.address && (
-              <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {spot.address}
-              </div>
-            )}
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{spot.name}</div>
+            {spot.address && <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{spot.address}</div>}
           </div>
         </div>
       ) : (
-        /* Navigation top — current step instruction */
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000,
           background: '#1d4ed8', padding: '16px',
@@ -242,29 +241,19 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
               padding: '6px 12px', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
             }}>End</button>
           </div>
-
-          {/* Next step preview */}
           {nextStep && (
             <div style={{
               marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.2)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
               <span style={{ fontSize: 16, opacity: 0.8 }}>{getManeuverIcon(nextStep)}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                Then: {parseStepInstruction(nextStep)}
-              </span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Then: {parseStepInstruction(nextStep)}</span>
             </div>
           )}
         </div>
       )}
 
-      {/* Map */}
-      <div style={{
-        position: 'absolute',
-        top: navigating ? 100 : 68,
-        left: 0, right: 0,
-        bottom: navigating ? 80 : 148,
-      }}>
+      <div style={{ position: 'absolute', top: navigating ? 100 : 68, left: 0, right: 0, bottom: navigating ? 80 : 148 }}>
         <MapContainer center={livePos || origin} zoom={13} zoomControl={!navigating} style={{ width: '100%', height: '100%' }}>
           <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {routeCoords && (
@@ -274,12 +263,27 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
             </>
           )}
           {navigating && livePos && <FollowMap userPos={livePos} navigating={navigating} />}
+
+          {/* Turn arrow markers */}
+          {steps.map((step, i) => {
+            const loc = step.maneuver?.location
+            const icon = getTurnArrowIcon(step)
+            if (!loc || !icon) return null
+            return (
+              <Marker
+                key={`step-${i}`}
+                position={[loc[1], loc[0]]}
+                icon={icon}
+                zIndexOffset={500}
+              />
+            )
+          })}
+
           <Marker position={livePos || origin} icon={userIcon} />
           <Marker position={[spot.lat, spot.lng]} icon={destIcon} />
         </MapContainer>
       </div>
 
-      {/* Bottom panel — pre-navigation */}
       {!navigating && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000,
@@ -287,7 +291,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
           boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
           borderRadius: '20px 20px 0 0',
         }}>
-          {/* Mode selector */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             {[
               { key: 'driving', label: '🚗 Drive' },
@@ -302,7 +305,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
               }}>{label}</button>
             ))}
           </div>
-
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             {loading ? (
               <span style={{ fontSize: 14, color: '#9ca3af' }}>Calculating route...</span>
@@ -316,7 +318,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
               </>
             ) : null}
           </div>
-
           <button onClick={startNavigation} disabled={!routeCoords} style={{
             width: '100%', padding: '14px', background: routeCoords ? '#22c55e' : '#d1d5db',
             color: '#fff', border: 'none', borderRadius: 14,
@@ -326,7 +327,6 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
         </div>
       )}
 
-      {/* Bottom bar — during navigation */}
       {navigating && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000,
