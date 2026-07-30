@@ -129,7 +129,7 @@ export default function ParkingMap({
   aiLoading, setAiLoading,
   recommendedId, setRecommendedId,
 }) {
-  const [aiCollapsed, setAiCollapsed] = useState(true)
+  const [aiCollapsed, setAiCollapsed] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
@@ -323,7 +323,7 @@ export default function ParkingMap({
 
         {/* AI button / card */}
         {aiCollapsed ? (
-          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-start' }}>
             <button onClick={() => setAiCollapsed(false)} style={{
               background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
               border: 'none', borderRadius: 20, padding: '7px 16px',
