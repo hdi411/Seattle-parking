@@ -47,19 +47,26 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
   useEffect(() => { fetchRoute(mode) }, [mode])
 
   async function fetchRoute(m) {
-    setLoading(true)
-    const url = `https://router.project-osrm.org/route/v1/${OSRM_MODES[m]}/${origin[1]},${origin[0]};${spot.lng},${spot.lat}?overview=full&geometries=geojson`
-    try {
-      const res = await fetch(url)
-      const data = await res.json()
-      const route = data.routes?.[0]
-      if (route) {
-        setRouteCoords(route.geometry.coordinates.map(([lng, lat]) => [lat, lng]))
-        setRouteInfo({ distance: route.distance, duration: route.duration })
-      }
-    } catch (e) { console.log('Route error:', e) }
-    setLoading(false)
-  }
+  setLoading(true)
+  // OSRM public only supports driving — use distance to estimate other modes
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${spot.lng},${spot.lat}?overview=full&geometries=geojson`
+  try {
+    const res = await fetch(url)
+    const data = await res.json()
+    const route = data.routes?.[0]
+    if (route) {
+      setRouteCoords(route.geometry.coordinates.map(([lng, lat]) => [lat, lng]))
+      const dist = route.distance
+      // Estimate duration by mode
+      const duration =
+        m === 'walking' ? dist / 1.4 :   // ~5 km/h
+        m === 'cycling' ? dist / 4.2 :   // ~15 km/h
+        route.duration                    // driving: use OSRM actual
+      setRouteInfo({ distance: dist, duration })
+    }
+  } catch (e) { console.log('Route error:', e) }
+  setLoading(false)
+}
 
   function startNav() {
     const travelmode = mode === 'walking' ? 'walking' : mode === 'cycling' ? 'bicycling' : 'driving'
