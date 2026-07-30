@@ -111,13 +111,11 @@ async function getAiRecommendation(spots, lat, lng) {
   const data = await res.json()
   const text = data.choices?.[0]?.message?.content || ''
   try {
-    const result = JSON.parse(text)
-    const picked = top[result.recommended_index]
-    if (!picked) return null
-    return { recommended_id: picked.id, explanation: result.explanation }
+    const parsed = JSON.parse(text)
+    const picked = top[parsed.recommended_index]
+    return picked ? { recommended_id: picked.id, explanation: parsed.explanation } : null
   } catch { return null }
 }
-
 
 export default function ParkingMap({
   prefs, onSpotSelect, onFilterOpen, onOrdersOpen, activeOrderCount,
@@ -128,15 +126,15 @@ export default function ParkingMap({
   aiTip, setAiTip,
   aiLoading, setAiLoading,
   recommendedId, setRecommendedId,
+  onNavigate,
 }) {
-  const [aiCollapsed, setAiCollapsed] = useState(false)
   const [suggestions, setSuggestions] = useState([])
   const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
+  const [aiCollapsed, setAiCollapsed] = useState(false)
   const [mapBounds, setMapBounds] = useState(null)
   const lastPositionRef = useRef(null)
 
-  // filteredSpots at TOP LEVEL so AI uses filter settings
   const filteredSpots = spots.filter(spot => {
     const typeMatch =
       (prefs.types.includes('garage') && (spot.type === 'multi-storey' || spot.type === 'underground')) ||
@@ -146,11 +144,9 @@ export default function ParkingMap({
     return typeMatch && rateMatch
   })
 
-  // Only render spots visible in current map bounds
   const visibleSpots = mapBounds
     ? filteredSpots.filter(s => mapBounds.contains([s.lat, s.lng]))
     : filteredSpots
-
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -159,7 +155,6 @@ export default function ParkingMap({
     )
   }, [])
 
-  // Trigger AI on position change (no hasSearched guard — runs on home too)
   useEffect(() => {
     const key = `${position[0].toFixed(4)},${position[1].toFixed(4)}`
     if (lastPositionRef.current === key) return
@@ -174,6 +169,7 @@ export default function ParkingMap({
         if (result) {
           setAiTip(result.explanation)
           setRecommendedId(result.recommended_id)
+          setAiCollapsed(false)
         }
         setAiLoading(false)
       })
@@ -230,7 +226,6 @@ export default function ParkingMap({
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
-      {/* Search bar + buttons */}
       <div style={{ position: 'absolute', top: 10, left: 10, right: 10, zIndex: 1000 }}>
         <div style={{ position: 'relative' }}>
           <div style={{
@@ -268,7 +263,6 @@ export default function ParkingMap({
                 ×
               </button>
             )}
-            {/* Parking lots toggle */}
             <button onClick={() => setShowSpots(s => !s)} style={{
               background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
               padding: '6px 10px', color: showSpots ? '#fff' : '#6b7280',
@@ -321,16 +315,15 @@ export default function ParkingMap({
           )}
         </div>
 
-        {/* AI button / card */}
         {aiCollapsed ? (
-          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-start' }}>
-            <button onClick={() => setAiCollapsed(false)} style={{
-              background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
-              border: 'none', borderRadius: 20, padding: '7px 16px',
-              color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(59,130,246,0.4)',
-            }}>✨ AI</button>
-          </div>
+          <button onClick={() => setAiCollapsed(false)} style={{
+            marginTop: 8,
+            background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+            border: 'none', borderRadius: 20, padding: '7px 14px',
+            color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>✨ AI</button>
         ) : (
           <div style={{
             marginTop: 8,
@@ -345,7 +338,7 @@ export default function ParkingMap({
                   ? <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Finding best spot...</span>
                   : aiTip
                     ? <span style={{ fontSize: 13, color: '#fff', lineHeight: 1.4 }}>{aiTip}</span>
-                    : <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Loading nearby spots...</span>
+                    : <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>Loading nearby recommendations...</span>
                 }
               </div>
               <button onClick={() => setAiCollapsed(true)} style={{
@@ -357,9 +350,8 @@ export default function ParkingMap({
         )}
       </div>
 
-      {/* Legend */}
       <div style={{
-        position: 'absolute', bottom: 70, left: 10, zIndex: 1000,
+        position: 'absolute', bottom: 58, left: 10, zIndex: 1000,
         background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: '7px 11px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.12)', fontSize: 11, fontWeight: 600,
         display: 'flex', flexDirection: 'column', gap: 4,
@@ -387,18 +379,14 @@ export default function ParkingMap({
         style={{ width: '100%', height: '100%' }}
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
         <ZoomControls />
         <MapBoundsTracker onBoundsChange={setMapBounds} />
-
-
         <Marker position={position} icon={userIcon}>
           <Popup>You are here</Popup>
         </Marker>
-
         {showSpots && visibleSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
-          const isRecommended = spot.id === recommendedId
+          const isRecommended = recommendedId && spot.id === recommendedId
           return (
             <Marker
               key={spot.id}
@@ -420,11 +408,11 @@ export default function ParkingMap({
                   color: '#fff', border: 'none', borderRadius: 8,
                   fontWeight: 600, cursor: 'pointer', width: '100%',
                 }}>View Details →</button>
-                <button onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`, '_blank')} style={{
+                <button onClick={() => onNavigate(spot)} style={{
                   marginTop: 6, padding: '6px 12px', background: '#10b981',
                   color: '#fff', border: 'none', borderRadius: 8,
                   fontWeight: 600, cursor: 'pointer', width: '100%',
-                }}>Get Directions →</button>
+                }}>Get Directions 🗺️</button>
                 <button onClick={() => {
                   if (isSaved) setSavedSpots(prev => prev.filter(s => s.id !== spot.id))
                   else setSavedSpots(prev => [...prev, { ...spot, category: 'Other' }])
