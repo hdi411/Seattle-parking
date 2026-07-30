@@ -122,7 +122,7 @@ export default function ParkingMap({
   const [suggestions, setSuggestions] = useState([])
   const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
-  const [aiCollapsed, setAiCollapsed] = useState(true)
+  const [aiCollapsed, setAiCollapsed] = useState(false)
   const lastPositionRef = useRef(null)
 
   const filteredSpots = spots.filter(spot => {
@@ -155,6 +155,7 @@ export default function ParkingMap({
         if (result) {
           setAiTip(result.explanation)
           setRecommendedId(result.recommended_id)
+          setAiCollapsed(false)
         }
         setAiLoading(false)
       })
