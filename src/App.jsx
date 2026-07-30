@@ -7,6 +7,7 @@ import SuccessScreen from './SuccessScreen'
 import OrdersScreen from './OrdersScreen'
 import SavedScreen from './SavedScreen'
 import NavBar from './NavBar'
+import NavigationScreen from './NavigationScreen'
 import allSpots from './parking_lots.json'
 
 function distance(lat1, lng1, lat2, lng2) {
@@ -26,8 +27,10 @@ export default function App() {
   const [orders, setOrders] = useState([])
   const [savedSpots, setSavedSpots] = useState([])
   const [position, setPosition] = useState([47.6097, -122.3331])
+  const [userPosition, setUserPosition] = useState(null)
   const [zoom, setZoom] = useState(16)
   const [spots, setSpots] = useState([])
+  const [navSpot, setNavSpot] = useState(null)
   const [prefs, setPrefs] = useState({
     types: ['garage', 'street', 'lot'],
     maxRate: 6,
@@ -46,6 +49,7 @@ export default function App() {
         const lat = pos.coords.latitude
         const lng = pos.coords.longitude
         setPosition([lat, lng])
+        setUserPosition([lat, lng])
         const nearby = allSpots.filter(s => distance(lat, lng, s.lat, s.lng) < (prefs?.radius || 1000))
         setSpots(nearby)
       },
@@ -55,6 +59,14 @@ export default function App() {
 
   const showNav = screen === 'map' || screen === 'saved' || screen === 'history' || screen === 'profile'
   const activeOrders = orders.filter(o => o.endTime > Date.now())
+
+  if (navSpot) return (
+    <NavigationScreen
+      spot={navSpot}
+      userPosition={userPosition}
+      onBack={() => setNavSpot(null)}
+    />
+  )
 
   return (
     <div style={{
@@ -82,6 +94,7 @@ export default function App() {
             onFilterOpen={() => setScreen('filter')}
             onOrdersOpen={() => setScreen('orders')}
             activeOrderCount={activeOrders.length}
+            onNavigate={setNavSpot}
           />
         )}
         {screen === 'filter' && (
