@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, Marker, Popup, Polyline } from 'react-leaflet'
 import { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import allSpots from './parking_lots.json'
@@ -16,6 +16,12 @@ function toImperial(meters) {
   const feet = meters * 3.28084
   if (feet < 1000) return `${Math.round(feet)} ft`
   return `${(feet / 5280).toFixed(1)} mi`
+}
+
+function formatDuration(seconds) {
+  const mins = Math.round(seconds / 60)
+  if (mins < 60) return `${mins} min`
+  return `${Math.floor(mins/60)}h ${mins%60}min`
 }
 
 function RecenterMap({ position, zoom }) {
@@ -122,6 +128,8 @@ export default function ParkingMap({
   const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
   const [aiCollapsed, setAiCollapsed] = useState(true)
+  const [routeCoords, setRouteCoords] = useState(null)
+  const [routeInfo, setRouteInfo] = useState(null)
   const lastPositionRef = useRef(null)
 
   const filteredSpots = spots.filter(spot => {
@@ -140,7 +148,6 @@ export default function ParkingMap({
     )
   }, [])
 
-  // AI triggers on any position change (home or search)
   useEffect(() => {
     const key = `${position[0].toFixed(4)},${position[1].toFixed(4)}`
     if (lastPositionRef.current === key) return
@@ -160,6 +167,20 @@ export default function ParkingMap({
       })
       .catch(() => setAiLoading(false))
   }, [position, filteredSpots])
+
+  async function getDirections(spot) {
+    const origin = userPosition || position
+    const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${spot.lng},${spot.lat}?overview=full&geometries=geojson`
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      const route = data.routes?.[0]
+      if (!route) return
+      const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng])
+      setRouteCoords(coords)
+      setRouteInfo({ name: spot.name, distance: route.distance, duration: route.duration })
+    } catch (e) { console.log('Route error:', e) }
+  }
 
   function goToUserLocation(fromSearch = false) {
     navigator.geolocation.getCurrentPosition(
@@ -308,9 +329,7 @@ export default function ParkingMap({
             color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(59,130,246,0.4)',
             display: 'flex', alignItems: 'center', gap: 5,
-          }}>
-            ✨ AI
-          </button>
+          }}>✨ AI</button>
         ) : (
           <div style={{
             marginTop: 8,
@@ -333,6 +352,27 @@ export default function ParkingMap({
                 color: 'rgba(255,255,255,0.7)', fontSize: 18, padding: 0, flexShrink: 0,
               }}>×</button>
             </div>
+          </div>
+        )}
+
+        {routeInfo && (
+          <div style={{
+            marginTop: 8, background: '#fff', borderRadius: 12,
+            padding: '10px 14px', boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>🚗</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{routeInfo.name}</div>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>
+                  {toImperial(routeInfo.distance)} · {formatDuration(routeInfo.duration)}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => { setRouteCoords(null); setRouteInfo(null) }} style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 20, padding: 0,
+            }}>×</button>
           </div>
         )}
       </div>
@@ -367,6 +407,11 @@ export default function ParkingMap({
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
+
+        {routeCoords && (
+          <Polyline positions={routeCoords} pathOptions={{ color: '#3b82f6', weight: 5, opacity: 0.8 }} />
+        )}
+
         <Marker position={position} icon={userIcon}>
           <Popup>You are here</Popup>
         </Marker>
@@ -394,11 +439,11 @@ export default function ParkingMap({
                   color: '#fff', border: 'none', borderRadius: 8,
                   fontWeight: 600, cursor: 'pointer', width: '100%',
                 }}>View Details →</button>
-                <button onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}`, '_blank')} style={{
+                <button onClick={() => getDirections(spot)} style={{
                   marginTop: 6, padding: '6px 12px', background: '#10b981',
                   color: '#fff', border: 'none', borderRadius: 8,
                   fontWeight: 600, cursor: 'pointer', width: '100%',
-                }}>Get Directions →</button>
+                }}>Get Directions 🗺️</button>
                 <button onClick={() => {
                   if (isSaved) setSavedSpots(prev => prev.filter(s => s.id !== spot.id))
                   else setSavedSpots(prev => [...prev, { ...spot, category: 'Other' }])
