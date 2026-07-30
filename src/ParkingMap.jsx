@@ -134,6 +134,7 @@ export default function ParkingMap({
   const [aiCollapsed, setAiCollapsed] = useState(false)
   const [mapBounds, setMapBounds] = useState(null)
   const lastPositionRef = useRef(null)
+  const aiCacheRef = useRef({})
 
   const filteredSpots = spots.filter(spot => {
     const typeMatch =
@@ -161,12 +162,21 @@ export default function ParkingMap({
     if (filteredSpots.filter(s => s.rate_1hr).length === 0) return
     lastPositionRef.current = key
 
-    setAiTip(null)
-    setRecommendedId(null)
+    // 有缓存直接用，不发请求
+    if (aiCacheRef.current[key]) {
+      const cached = aiCacheRef.current[key]
+      setAiTip(cached.explanation)
+      setRecommendedId(cached.recommended_id)
+      setAiCollapsed(false)
+      return
+    }
+
     setAiLoading(true)
+    // 不清空旧 tip，继续显示直到新结果回来
     getAiRecommendation(filteredSpots, position[0], position[1])
       .then(result => {
         if (result) {
+          aiCacheRef.current[key] = result
           setAiTip(result.explanation)
           setRecommendedId(result.recommended_id)
           setAiCollapsed(false)
