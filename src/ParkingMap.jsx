@@ -195,7 +195,7 @@ export default function ParkingMap({
         }
         setAiLoading(false)
       })
-      .catch(() => setAiLoading(false))
+      //.catch(() => setAiLoading(false))
   }, [position, filteredSpots])
 
   function goToUserLocation(fromSearch = false) {
