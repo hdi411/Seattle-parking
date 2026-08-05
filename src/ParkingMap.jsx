@@ -162,7 +162,6 @@ export default function ParkingMap({
     if (filteredSpots.filter(s => s.rate_1hr).length === 0) return
     lastPositionRef.current = key
 
-    // 有缓存直接用，不发请求
     if (aiCacheRef.current[key]) {
       const cached = aiCacheRef.current[key]
       setAiTip(cached.explanation)
@@ -172,7 +171,6 @@ export default function ParkingMap({
     }
 
     setAiLoading(true)
-    // 不清空旧 tip，继续显示直到新结果回来
     getAiRecommendation(filteredSpots, position[0], position[1])
       .then(result => {
         if (result) {
@@ -237,94 +235,105 @@ export default function ParkingMap({
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
       <div style={{ position: 'absolute', top: 10, left: 10, right: 10, zIndex: 1000 }}>
-        <div style={{ position: 'relative' }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: suggestions.length > 0 ? '12px 12px 0 0' : 12,
-            padding: '10px 14px',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); fetchSuggestions(e.target.value) }}
-              onFocus={() => { if (!searchQuery) setSuggestions(myLocationSuggestion) }}
-              onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-              onKeyDown={e => {
-                if (e.key === 'Escape') setSuggestions([])
-                if (e.key === 'Enter' && suggestions.length > 0) selectSuggestion(suggestions[0])
-              }}
-              placeholder="Search destination..."
-              style={{
-                flex: 1, border: 'none', outline: 'none',
-                fontSize: 15, fontWeight: 600, color: '#111827', background: 'transparent',
-              }}
-            />
-            {searchQuery && (
-              <button onClick={() => {
-                setSearchQuery(''); setSuggestions([])
-                setHasSearched(false); setAiTip(null); setRecommendedId(null)
-                goToUserLocation()
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: 0 }}>
-                ×
-              </button>
-            )}
-            <button onClick={() => setShowSpots(s => !s)} style={{
-              background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
-              padding: '6px 10px', color: showSpots ? '#fff' : '#6b7280',
-              fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            }}>🅿️</button>
-            <button onClick={onFilterOpen} style={{
-              background: '#3b82f6', border: 'none', borderRadius: 8,
-              padding: '6px 10px', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            }}>⚙️</button>
-            <div style={{ position: 'relative' }}>
-              <button onClick={onOrdersOpen} style={{
-                background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
-                padding: '6px 10px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }}>📋</button>
-              {activeOrderCount > 0 && (
-                <div style={{
-                  position: 'absolute', top: -6, right: -6,
-                  background: '#ef4444', color: '#fff', borderRadius: '50%',
-                  width: 18, height: 18, fontSize: 11, fontWeight: 700,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{activeOrderCount}</div>
+
+        {/* 顶部一行：search bar + 🅿️ + 📋 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+          {/* Search bar — 只含 input + ⚙️ */}
+          <div style={{ position: 'relative', flex: 1 }}>
+            <div style={{
+              background: '#fff',
+              borderRadius: suggestions.length > 0 ? '12px 12px 0 0' : 12,
+              padding: '10px 14px',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); fetchSuggestions(e.target.value) }}
+                onFocus={() => { if (!searchQuery) setSuggestions(myLocationSuggestion) }}
+                onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') setSuggestions([])
+                  if (e.key === 'Enter' && suggestions.length > 0) selectSuggestion(suggestions[0])
+                }}
+                placeholder="Search destination..."
+                style={{
+                  flex: 1, border: 'none', outline: 'none',
+                  fontSize: 15, fontWeight: 600, color: '#111827', background: 'transparent',
+                }}
+              />
+              {searchQuery && (
+                <button onClick={() => {
+                  setSearchQuery(''); setSuggestions([])
+                  setHasSearched(false); setAiTip(null); setRecommendedId(null)
+                  goToUserLocation()
+                }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: 0 }}>
+                  ×
+                </button>
               )}
+              <button onClick={onFilterOpen} style={{
+                background: '#3b82f6', border: 'none', borderRadius: 8,
+                padding: '6px 10px', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+              }}>⚙️</button>
             </div>
+
+            {suggestions.length > 0 && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1001,
+                background: '#fff', borderRadius: '0 0 12px 12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderTop: '1px solid #f3f4f6', overflow: 'hidden',
+              }}>
+                {suggestions.map(item => (
+                  <button key={item.place_id} onClick={() => {
+                    if (item.place_id === 'my-location') { goToUserLocation(true); setSearchQuery(''); setSuggestions([]) }
+                    else selectSuggestion(item)
+                  }} style={{
+                    width: '100%', textAlign: 'left', padding: '10px 14px',
+                    border: 'none', background: 'none', cursor: 'pointer',
+                    fontSize: 14, color: '#111827', borderBottom: '1px solid #f9fafb',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    {item.place_id === 'my-location' ? '🎯' : '📍'}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.display_name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {suggestions.length > 0 && (
-            <div style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1001,
-              background: '#fff', borderRadius: '0 0 12px 12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              borderTop: '1px solid #f3f4f6', overflow: 'hidden',
-            }}>
-              {suggestions.map(item => (
-                <button key={item.place_id} onClick={() => {
-                  if (item.place_id === 'my-location') { goToUserLocation(true); setSearchQuery(''); setSuggestions([]) }
-                  else selectSuggestion(item)
-                }} style={{
-                  width: '100%', textAlign: 'left', padding: '10px 14px',
-                  border: 'none', background: 'none', cursor: 'pointer',
-                  fontSize: 14, color: '#111827', borderBottom: '1px solid #f9fafb',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                }}>
-                  {item.place_id === 'my-location' ? '🎯' : '📍'}
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.display_name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+          {/* 🅿️ 和 📋 在 search bar 外面 */}
+          <button onClick={() => setShowSpots(s => !s)} style={{
+            background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
+            padding: '10px 11px', color: showSpots ? '#fff' : '#6b7280',
+            fontWeight: 600, fontSize: 15, cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
+          }}>🅿️</button>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button onClick={onOrdersOpen} style={{
+              background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
+              padding: '10px 11px', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}>📋</button>
+            {activeOrderCount > 0 && (
+              <div style={{
+                position: 'absolute', top: -6, right: -6,
+                background: '#ef4444', color: '#fff', borderRadius: '50%',
+                width: 18, height: 18, fontSize: 11, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>{activeOrderCount}</div>
+            )}
+          </div>
         </div>
 
+        {/* AI card */}
         {aiCollapsed ? (
           <button onClick={() => setAiCollapsed(false)} style={{
             marginTop: 8,
@@ -360,6 +369,7 @@ export default function ParkingMap({
         )}
       </div>
 
+      {/* Legend */}
       <div style={{
         position: 'absolute', bottom: 58, left: 10, zIndex: 1000,
         background: 'rgba(255,255,255,0.95)', borderRadius: 10, padding: '7px 11px',
