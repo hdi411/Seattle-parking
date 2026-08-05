@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet'
 import { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import allSpots from './parking_lots.json'
@@ -26,15 +26,6 @@ function RecenterMap({ position, zoom }) {
   return null
 }
 
-function MapBoundsTracker({ onBoundsChange }) {
-  const map = useMapEvents({
-    moveend: () => onBoundsChange(map.getBounds()),
-    zoomend: () => onBoundsChange(map.getBounds()),
-  })
-  useEffect(() => { onBoundsChange(map.getBounds()) }, [])
-  return null
-}
-
 function ZoomControls() {
   const map = useMap()
   return (
@@ -58,6 +49,7 @@ function ZoomControls() {
   )
 }
 
+// Preload all icons at module level so images are cached before panning
 const userIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -70,19 +62,28 @@ const recommendedIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41],
 })
 
-const _iconCache = {}
+const SPOT_ICONS = {
+  green: new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [20, 33], iconAnchor: [10, 33],
+  }),
+  yellow: new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [20, 33], iconAnchor: [10, 33],
+  }),
+  blue: new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [20, 33], iconAnchor: [10, 33],
+  }),
+}
+
 function getSpotIcon(type) {
-  const color =
-    type === 'multi-storey' || type === 'underground' ? 'green' :
-    type === 'street_side' ? 'yellow' : 'blue'
-  if (!_iconCache[color]) {
-    _iconCache[color] = new L.Icon({
-      iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [20, 33], iconAnchor: [10, 33],
-    })
-  }
-  return _iconCache[color]
+  if (type === 'multi-storey' || type === 'underground') return SPOT_ICONS.green
+  if (type === 'street_side') return SPOT_ICONS.yellow
+  return SPOT_ICONS.blue
 }
 
 async function getAiRecommendation(spots, lat, lng) {
@@ -136,7 +137,6 @@ export default function ParkingMap({
   const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
   const [aiCollapsed, setAiCollapsed] = useState(false)
-  const [mapBounds, setMapBounds] = useState(null)
   const lastPositionRef = useRef(null)
   const aiCacheRef = useRef({})
 
@@ -148,10 +148,6 @@ export default function ParkingMap({
     const rateMatch = !spot.rate_1hr || spot.rate_1hr <= prefs.maxRate
     return typeMatch && rateMatch
   })
-
-  const visibleSpots = mapBounds
-    ? filteredSpots.filter(s => mapBounds.contains([s.lat, s.lng]))
-    : filteredSpots
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -243,7 +239,7 @@ export default function ParkingMap({
         {/* 顶部一行：search bar + 🅿️ + 📋 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
-          {/* Search bar — 只含 input + ⚙️ */}
+          {/* Search bar */}
           <div style={{ position: 'relative', flex: 1 }}>
             <div style={{
               background: '#fff',
@@ -404,11 +400,10 @@ export default function ParkingMap({
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
-        <MapBoundsTracker onBoundsChange={setMapBounds} />
         <Marker position={position} icon={userIcon}>
           <Popup>You are here</Popup>
         </Marker>
-        {showSpots && visibleSpots.map(spot => {
+        {showSpots && filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
           const isRecommended = recommendedId && spot.id === recommendedId
           return (
