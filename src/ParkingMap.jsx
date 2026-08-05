@@ -49,6 +49,20 @@ function ZoomControls() {
   )
 }
 
+// Recenter map when clicking the user location marker
+function UserMarker({ position, zoom }) {
+  const map = useMap()
+  return (
+    <Marker
+      position={position}
+      icon={userIcon}
+      eventHandlers={{ click: () => map.setView(position, zoom) }}
+    >
+      <Popup>You are here</Popup>
+    </Marker>
+  )
+}
+
 // Preload all icons at module level so images are cached before panning
 const userIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -231,6 +245,9 @@ export default function ParkingMap({
     setSuggestions([])
   }
 
+  // AI card height: search bar ~54px + margin 8px + AI card ~50px + top padding 10px = ~150px
+  const POPUP_TOP_PADDING = L.point(10, 150)
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
@@ -400,9 +417,8 @@ export default function ParkingMap({
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
-        <Marker position={position} icon={userIcon}>
-          <Popup>You are here</Popup>
-        </Marker>
+        {/* User location marker — click to recenter */}
+        <UserMarker position={position} zoom={zoom} />
         {showSpots && filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
           const isRecommended = recommendedId && spot.id === recommendedId
@@ -413,7 +429,8 @@ export default function ParkingMap({
               icon={isRecommended ? recommendedIcon : getSpotIcon(spot.type)}
               zIndexOffset={isRecommended ? 1000 : 0}
             >
-              <Popup>
+              {/* autoPanPaddingTopLeft pushes popup below the AI card */}
+              <Popup autoPanPaddingTopLeft={POPUP_TOP_PADDING}>
                 {isRecommended && (
                   <div style={{ color: '#f97316', fontWeight: 700, marginBottom: 4 }}>✨ AI Recommended</div>
                 )}
