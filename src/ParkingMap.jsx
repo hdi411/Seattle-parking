@@ -248,10 +248,15 @@ export default function ParkingMap({
               boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
+              <button onClick={() => goToUserLocation(true)} style={{
+  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+  display: 'flex', alignItems: 'center',
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+</button>
               <input
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); fetchSuggestions(e.target.value) }}
