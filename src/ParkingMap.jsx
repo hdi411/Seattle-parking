@@ -345,10 +345,18 @@ export default function ParkingMap({
           }}>🅿️</button>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={onOrdersOpen} style={{
-              background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
-              padding: '10px 11px', fontWeight: 600, fontSize: 15, cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}>📋</button>
+  background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
+  padding: '10px 11px', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2"/>
+    <line x1="8" y1="8" x2="16" y2="8"/>
+    <line x1="8" y1="12" x2="16" y2="12"/>
+    <line x1="8" y1="16" x2="12" y2="16"/>
+  </svg>
+</button>
             {activeOrderCount > 0 && (
               <div style={{
                 position: 'absolute', top: -6, right: -6,
