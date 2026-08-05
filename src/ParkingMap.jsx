@@ -293,10 +293,20 @@ export default function ParkingMap({
                   ×
                 </button>
               )}
-              <button onClick={onFilterOpen} style={{
-                background: '#3b82f6', border: 'none', borderRadius: 8,
-                padding: '6px 10px', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }}>⚙️</button>
+             <button onClick={onFilterOpen} style={{
+  background: '#3b82f6', border: 'none', borderRadius: 8,
+  padding: '6px 10px', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+}}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+    <line x1="4" y1="6" x2="20" y2="6"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="18" x2="20" y2="18"/>
+    <circle cx="8" cy="6" r="2.5" fill="#fff" stroke="none"/>
+    <circle cx="16" cy="12" r="2.5" fill="#fff" stroke="none"/>
+    <circle cx="10" cy="18" r="2.5" fill="#fff" stroke="none"/>
+  </svg>
+</button>
             </div>
 
             {suggestions.length > 0 && (
