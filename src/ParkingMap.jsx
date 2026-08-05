@@ -350,7 +350,7 @@ export default function ParkingMap({
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
 }}>
-  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2"/>
     <line x1="8" y1="8" x2="16" y2="8"/>
     <line x1="8" y1="12" x2="16" y2="12"/>
