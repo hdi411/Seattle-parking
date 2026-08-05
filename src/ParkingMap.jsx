@@ -70,15 +70,19 @@ const recommendedIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41],
 })
 
+const _iconCache = {}
 function getSpotIcon(type) {
   const color =
     type === 'multi-storey' || type === 'underground' ? 'green' :
     type === 'street_side' ? 'yellow' : 'blue'
-  return new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [20, 33], iconAnchor: [10, 33],
-  })
+  if (!_iconCache[color]) {
+    _iconCache[color] = new L.Icon({
+      iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [20, 33], iconAnchor: [10, 33],
+    })
+  }
+  return _iconCache[color]
 }
 
 async function getAiRecommendation(spots, lat, lng) {

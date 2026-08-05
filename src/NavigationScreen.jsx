@@ -355,4 +355,4 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
       )}
     </div>
   )
-} 
+}
