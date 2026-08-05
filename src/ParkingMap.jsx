@@ -248,7 +248,7 @@ export default function ParkingMap({
               boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
               display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <button onClick={() => goToUserLocation(true)} style={{
+              <button onClick={() => { goToUserLocation(true); onSpotSelect(null) }} style={{
   background: 'none', border: 'none', cursor: 'pointer', padding: 0,
   display: 'flex', alignItems: 'center',
 }}>
