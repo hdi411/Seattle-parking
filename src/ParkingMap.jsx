@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Popup } from 'react-leaflet'
 import { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import allSpots from './parking_lots.json'
@@ -23,6 +23,16 @@ function RecenterMap({ position, zoom }) {
   useEffect(() => {
     if (position[0] && position[1]) map.setView(position, zoom)
   }, [map, position, zoom])
+  return null
+}
+
+// Double-click anywhere on map → move pin + load nearby spots
+function MapDoubleClickHandler({ onDoubleClick }) {
+  useMapEvents({
+    dblclick(e) {
+      onDoubleClick(e.latlng.lat, e.latlng.lng)
+    },
+  })
   return null
 }
 
@@ -62,14 +72,13 @@ function UserMarker({ position, zoom }) {
   )
 }
 
-// User location icon — keep as red pin
+// User location icon — red pin
 const userIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   iconSize: [25, 41], iconAnchor: [12, 41],
 })
 
-// Color per parking type
 function spotColor(type, isRecommended) {
   if (isRecommended) return '#f97316'
   if (type === 'multi-storey' || type === 'underground') return '#16a34a'
@@ -77,7 +86,7 @@ function spotColor(type, isRecommended) {
   return '#2563eb'
 }
 
-// Price bubble using divIcon — no network requests
+// Price bubble marker — no external image fetch
 function createPriceIcon(spot, isRecommended) {
   const price = spot.rate_1hr ? `$${spot.rate_1hr}` : 'P'
   const bg = spotColor(spot.type, isRecommended)
@@ -233,6 +242,17 @@ export default function ParkingMap({
     )
   }
 
+  // Double-click on map: move pin to that point, load nearby spots
+  function handleMapDoubleClick(lat, lng) {
+    setPosition([lat, lng])
+    setZoom(16)
+    const nearby = allSpots.filter(s => distance(lat, lng, s.lat, s.lng) < (prefs?.radius || 1000))
+    setSpots(nearby)
+    setHasSearched(true)
+    setSearchQuery('')
+    lastPositionRef.current = null // force AI to re-run for new location
+  }
+
   const myLocationSuggestion = userPosition ? [{
     place_id: 'my-location',
     display_name: 'My Location',
@@ -293,7 +313,7 @@ export default function ParkingMap({
                   if (e.key === 'Escape') setSuggestions([])
                   if (e.key === 'Enter' && suggestions.length > 0) selectSuggestion(suggestions[0])
                 }}
-                placeholder="Search destination..."
+                placeholder="Search or double-tap map to drop pin..."
                 style={{
                   flex: 1, border: 'none', outline: 'none',
                   fontSize: 15, fontWeight: 600, color: '#111827', background: 'transparent',
@@ -445,10 +465,12 @@ export default function ParkingMap({
         center={position}
         zoom={zoom}
         zoomControl={false}
+        doubleClickZoom={false}
         style={{ width: '100%', height: '100%' }}
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
+        <MapDoubleClickHandler onDoubleClick={handleMapDoubleClick} />
         <UserMarker position={position} zoom={zoom} />
         {showSpots && filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
