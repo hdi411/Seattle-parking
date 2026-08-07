@@ -49,7 +49,6 @@ function ZoomControls() {
   )
 }
 
-// Recenter map when clicking the user location marker
 function UserMarker({ position, zoom }) {
   const map = useMap()
   return (
@@ -63,41 +62,61 @@ function UserMarker({ position, zoom }) {
   )
 }
 
-// Preload all icons at module level so images are cached before panning
+// User location icon — keep as red pin
 const userIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   iconSize: [25, 41], iconAnchor: [12, 41],
 })
 
-const recommendedIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41], iconAnchor: [12, 41],
-})
-
-const SPOT_ICONS = {
-  green: new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [20, 33], iconAnchor: [10, 33],
-  }),
-  yellow: new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [20, 33], iconAnchor: [10, 33],
-  }),
-  blue: new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [20, 33], iconAnchor: [10, 33],
-  }),
+// Color per parking type
+function spotColor(type, isRecommended) {
+  if (isRecommended) return '#f97316'
+  if (type === 'multi-storey' || type === 'underground') return '#16a34a'
+  if (type === 'street_side') return '#ca8a04'
+  return '#2563eb'
 }
 
-function getSpotIcon(type) {
-  if (type === 'multi-storey' || type === 'underground') return SPOT_ICONS.green
-  if (type === 'street_side') return SPOT_ICONS.yellow
-  return SPOT_ICONS.blue
+// Price bubble using divIcon — no network requests
+function createPriceIcon(spot, isRecommended) {
+  const price = spot.rate_1hr ? `$${spot.rate_1hr}` : 'P'
+  const bg = spotColor(spot.type, isRecommended)
+  const border = isRecommended ? '2px solid #fff' : 'none'
+  const prefix = isRecommended ? '✨ ' : ''
+
+  const html = `
+    <div style="
+      background:${bg};
+      color:#fff;
+      border-radius:7px;
+      padding:4px 9px;
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);
+      border:${border};
+      position:relative;
+      display:inline-block;
+    ">
+      ${prefix}${price}
+      <div style="
+        position:absolute;
+        bottom:-5px;
+        left:50%;
+        transform:translateX(-50%);
+        width:0;height:0;
+        border-left:5px solid transparent;
+        border-right:5px solid transparent;
+        border-top:6px solid ${bg};
+      "></div>
+    </div>
+  `
+  return L.divIcon({
+    className: '',
+    html,
+    iconAnchor: [20, 30],
+    popupAnchor: [0, -32],
+  })
 }
 
 async function getAiRecommendation(spots, lat, lng) {
@@ -195,7 +214,7 @@ export default function ParkingMap({
         }
         setAiLoading(false)
       })
-      //.catch(() => setAiLoading(false))
+    // .catch(() => setAiLoading(false))
   }, [position, filteredSpots])
 
   function goToUserLocation(fromSearch = false) {
@@ -245,18 +264,14 @@ export default function ParkingMap({
     setSuggestions([])
   }
 
-  // AI card height: search bar ~54px + margin 8px + AI card ~50px + top padding 10px = ~150px
   const POPUP_TOP_PADDING = L.point(10, 150)
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
       <div style={{ position: 'absolute', top: 10, left: 10, right: 10, zIndex: 1000 }}>
-
-        {/* 顶部一行：search bar + 🅿️ + 📋 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
-          {/* Search bar */}
           <div style={{ position: 'relative', flex: 1 }}>
             <div style={{
               background: '#fff',
@@ -293,20 +308,20 @@ export default function ParkingMap({
                   ×
                 </button>
               )}
-             <button onClick={onFilterOpen} style={{
-  background: '#3b82f6', border: 'none', borderRadius: 8,
-  padding: '6px 10px', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-}}>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="4" y1="6" x2="20" y2="6"/>
-    <line x1="4" y1="12" x2="20" y2="12"/>
-    <line x1="4" y1="18" x2="20" y2="18"/>
-    <circle cx="8" cy="6" r="2.5" fill="#fff" stroke="none"/>
-    <circle cx="16" cy="12" r="2.5" fill="#fff" stroke="none"/>
-    <circle cx="10" cy="18" r="2.5" fill="#fff" stroke="none"/>
-  </svg>
-</button>
+              <button onClick={onFilterOpen} style={{
+                background: '#3b82f6', border: 'none', borderRadius: 8,
+                padding: '6px 10px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                  <circle cx="8" cy="6" r="2.5" fill="#fff" stroke="none"/>
+                  <circle cx="16" cy="12" r="2.5" fill="#fff" stroke="none"/>
+                  <circle cx="10" cy="18" r="2.5" fill="#fff" stroke="none"/>
+                </svg>
+              </button>
             </div>
 
             {suggestions.length > 0 && (
@@ -336,7 +351,6 @@ export default function ParkingMap({
             )}
           </div>
 
-          {/* 🅿️ 和 📋 在 search bar 外面 */}
           <button onClick={() => setShowSpots(s => !s)} style={{
             background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
             padding: '10px 11px', color: showSpots ? '#fff' : '#6b7280',
@@ -345,18 +359,18 @@ export default function ParkingMap({
           }}>🅿️</button>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={onOrdersOpen} style={{
-  background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
-  padding: '10px 11px', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-}}>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2"/>
-    <line x1="8" y1="8" x2="16" y2="8"/>
-    <line x1="8" y1="12" x2="16" y2="12"/>
-    <line x1="8" y1="16" x2="12" y2="16"/>
-  </svg>
-</button>
+              background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
+              padding: '10px 11px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2"/>
+                <line x1="8" y1="8" x2="16" y2="8"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+                <line x1="8" y1="16" x2="12" y2="16"/>
+              </svg>
+            </button>
             {activeOrderCount > 0 && (
               <div style={{
                 position: 'absolute', top: -6, right: -6,
@@ -412,13 +426,13 @@ export default function ParkingMap({
         display: 'flex', flexDirection: 'column', gap: 4,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2a81cb' }}/>Surface / Lot
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2563eb' }}/>Surface / Lot
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2aad27' }}/>Garage / Underground
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#16a34a' }}/>Garage / Underground
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#cac428' }}/>Street Side
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ca8a04' }}/>Street Side
         </div>
         {recommendedId && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -435,7 +449,6 @@ export default function ParkingMap({
       >
         <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <ZoomControls />
-        {/* User location marker — click to recenter */}
         <UserMarker position={position} zoom={zoom} />
         {showSpots && filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
@@ -444,10 +457,9 @@ export default function ParkingMap({
             <Marker
               key={spot.id}
               position={[spot.lat, spot.lng]}
-              icon={isRecommended ? recommendedIcon : getSpotIcon(spot.type)}
+              icon={createPriceIcon(spot, isRecommended)}
               zIndexOffset={isRecommended ? 1000 : 0}
             >
-              {/* autoPanPaddingTopLeft pushes popup below the AI card */}
               <Popup autoPanPaddingTopLeft={POPUP_TOP_PADDING}>
                 {isRecommended && (
                   <div style={{ color: '#f97316', fontWeight: 700, marginBottom: 4 }}>✨ AI Recommended</div>
