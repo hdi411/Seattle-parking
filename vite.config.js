@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Seattle Parking',
-        short_name: 'Parking',
+        short_name: 'Seattle Parking',
         description: 'Find parking in Seattle',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
