@@ -4,7 +4,7 @@ export default function NavBar({ active, setActive }) {
       id: 'map',
       label: 'Find',
       icon: (isActive) => (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill={isActive ? '#111827' : 'none'} stroke={isActive ? '#111827' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isActive ? '#111827' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
