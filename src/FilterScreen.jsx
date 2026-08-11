@@ -1,19 +1,50 @@
-const GarageIcon = ({ color }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-    <line x1="9" y1="22" x2="9" y2="12"/>
-    <line x1="15" y1="22" x2="15" y2="12"/>
-    <line x1="9" y1="12" x2="15" y2="12"/>
+const GarageIcon = ({ active }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* left ramp ribs */}
+    <rect x="1" y="9" width="2.5" height="12" rx="0.5" fill="#9ca3af" stroke="#374151" strokeWidth="1"/>
+    <line x1="1" y1="12.5" x2="3.5" y2="12.5" stroke="#6b7280" strokeWidth="0.8"/>
+    <line x1="1" y1="16" x2="3.5" y2="16" stroke="#6b7280" strokeWidth="0.8"/>
+    {/* main building body */}
+    <rect x="3.5" y="8" width="18.5" height="13" rx="1" fill="#d1d5db" stroke="#374151" strokeWidth="1.5"/>
+    {/* floor dividers */}
+    <line x1="3.5" y1="12" x2="22" y2="12" stroke="#374151" strokeWidth="1"/>
+    <line x1="3.5" y1="16" x2="22" y2="16" stroke="#374151" strokeWidth="1"/>
+    {/* floor 1 windows */}
+    <rect x="5.5" y="9" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="10.5" y="9" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="16" y="9" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    {/* floor 2 windows */}
+    <rect x="5.5" y="13" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="10.5" y="13" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="16" y="13" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    {/* floor 3 windows */}
+    <rect x="5.5" y="17" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="10.5" y="17" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    <rect x="16" y="17" width="3.5" height="2.5" rx="0.4" fill="#374151"/>
+    {/* P sign circle */}
+    <circle cx="12.5" cy="5" r="3.2" fill="#fff" stroke="#374151" strokeWidth="1.5"/>
+    <path d="M11.2 7V3.2h1.8a1.4 1.4 0 0 1 0 2.8H11.2" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
-const StreetIcon = ({ color }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="9" width="14" height="8" rx="2"/>
-    <path d="M5 9l1.5-3h7L15 9"/>
-    <circle cx="6" cy="17" r="1.5" fill={color}/>
-    <circle cx="12" cy="17" r="1.5" fill={color}/>
-    <line x1="2" y1="20" x2="22" y2="20" strokeWidth="2.5"/>
+const StreetIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 40 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="30" x2="40" y2="30" stroke="#111827" strokeWidth="2"/>
+    <rect x="6.5" y="20" width="2" height="10" fill="#78716c" stroke="#111827" strokeWidth="1"/>
+    <path d="M4.5 30 L5.5 23 L9.5 23 L10.5 30Z" fill="#57534e" stroke="#111827" strokeWidth="1"/>
+    <rect x="1" y="5" width="13" height="10" rx="1.5" fill="#2563eb" stroke="#111827" strokeWidth="1.5"/>
+    <path d="M6 13V7h2.5a2 2 0 0 1 0 4H6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="16" y="13" width="23" height="16" rx="4" fill="#f59e0b" stroke="#111827" strokeWidth="2"/>
+    <rect x="18" y="13" width="19" height="9" rx="3" fill="#bfdbfe" stroke="#111827" strokeWidth="1.5"/>
+    <rect x="19" y="15" width="5" height="6" rx="1" fill="#92400e"/>
+    <rect x="27" y="15" width="5" height="6" rx="1" fill="#92400e"/>
+    <circle cx="19.5" cy="25" r="2.5" fill="#fff" stroke="#111827" strokeWidth="1.5"/>
+    <circle cx="35.5" cy="25" r="2.5" fill="#fff" stroke="#111827" strokeWidth="1.5"/>
+    <rect x="24" y="23" width="7" height="2.5" rx="0.5" fill="#111827"/>
+    <line x1="25.5" y1="23" x2="25.5" y2="25.5" stroke="#f59e0b" strokeWidth="0.8"/>
+    <line x1="27.5" y1="23" x2="27.5" y2="25.5" stroke="#f59e0b" strokeWidth="0.8"/>
+    <line x1="29.5" y1="23" x2="29.5" y2="25.5" stroke="#f59e0b" strokeWidth="0.8"/>
+    <rect x="23" y="27" width="9" height="2" rx="0.5" fill="#fff" stroke="#111827" strokeWidth="0.8"/>
   </svg>
 )
 
@@ -71,7 +102,7 @@ export default function FilterScreen({ onBack, prefs, setPrefs }) {
                   border: active ? '2px solid #3b82f6' : '1.5px solid #e5e7eb',
                   background: active ? '#eff6ff' : '#fff',
                 }}>
-                  <t.Icon color={color} />
+                  {(t.id === 'garage' || t.id === 'street') ? <t.Icon active={active} /> : <t.Icon color={color} />}
                   <span style={{ fontSize: 14, fontWeight: 600, color: active ? '#1d4ed8' : '#374151', flex: 1 }}>
                     {t.label}
                   </span>
