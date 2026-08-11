@@ -155,10 +155,14 @@ async function getAiRecommendation(spots, lat, lng) {
   const data = await res.json()
   const text = data.choices?.[0]?.message?.content || ''
   try {
-    const parsed = JSON.parse(text)
+    // Extract JSON even if GPT wraps it in extra text
+    const match = text.match(/\{[\s\S]*\}/)
+    const parsed = JSON.parse(match ? match[0] : text)
     const picked = top[parsed.recommended_index]
     return picked ? { recommended_id: picked.id, explanation: parsed.explanation } : null
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export default function ParkingMap({
@@ -219,7 +223,10 @@ export default function ParkingMap({
         }
         setAiLoading(false)
       })
-    // .catch(() => setAiLoading(false))
+      .catch(() => {
+        // Reset loading state on any error (network, 401, rate limit, etc.)
+        setAiLoading(false)
+      })
   }, [position, filteredSpots])
 
   function goToUserLocation(fromSearch = false) {
@@ -366,7 +373,7 @@ export default function ParkingMap({
             )}
           </div>
 
-          {/* My Receipt button — replaces old Orders icon-only button */}
+          {/* My Receipt button */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={onOrdersOpen} style={{
               background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
