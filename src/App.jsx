@@ -74,7 +74,6 @@ export default function App() {
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      paddingBottom: 'env(safe-area-inset-bottom)',
       boxSizing: 'border-box',
     }}>
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -144,7 +143,11 @@ export default function App() {
           </div>
         )}
       </div>
-      {showNav && <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />}
+      {showNav && (
+        <div style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: '#fff' }}>
+          <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />
+        </div>
+      )}
     </div>
   )
 }
