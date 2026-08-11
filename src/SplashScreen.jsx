@@ -19,68 +19,11 @@ export default function SplashScreen({ onDone }) {
       transition: 'opacity 0.6s ease',
     }}>
 
-      {/*
-        Space Needle logo — clean geometric version:
-        Spire → upper obs ring → upper stem → saucer (= P sign) → lower stem → tripod legs
-      */}
-      <svg width="100" height="148" viewBox="0 0 100 148" fill="none" style={{ marginBottom: 28 }}>
-
-        {/* ── Spire ── */}
-        <line x1="50" y1="2" x2="50" y2="18"
-          stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-
-        {/* ── Upper observation ring ── */}
-        <ellipse cx="50" cy="18" rx="7" ry="2.5" fill="rgba(255,255,255,0.55)"/>
-
-        {/* ── Upper stem (obs ring → saucer) ── */}
-        <rect x="47.5" y="20" width="5" height="13" rx="2.5" fill="white"/>
-
-        {/* ── Saucer dome arch (top of flying disc) ── */}
-        <path d="M22 38 Q50 24 78 38"
-          fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="2"/>
-
-        {/* ── Saucer rim (outer ring) ── */}
-        <ellipse cx="50" cy="40" rx="28" ry="8"
-          fill="rgba(255,255,255,0.12)" stroke="white" strokeWidth="2"/>
-
-        {/* ── P parking sign (the saucer centre) ── */}
-        <circle cx="50" cy="38" r="20" fill="#1e40af"/>
-        <circle cx="50" cy="38" r="19" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5"/>
-        <text
-          x="50" y="46"
-          textAnchor="middle"
-          fontSize="23" fontWeight="900" fill="white"
-          fontFamily="-apple-system, 'Helvetica Neue', Arial, sans-serif"
-        >P</text>
-
-        {/* ── Lower stem (saucer → base ring) ── */}
-        <rect x="47" y="58" width="6" height="32" rx="3" fill="white"/>
-
-        {/* ── Base ring ── */}
-        <ellipse cx="50" cy="90" rx="13" ry="4.5"
-          fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="1.5"/>
-
-        {/* ── Tripod left leg ── */}
-        <path d="M46 93 Q36 108 20 122"
-          stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
-
-        {/* ── Tripod right leg ── */}
-        <path d="M54 93 Q64 108 80 122"
-          stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
-
-        {/* ── Left foot brace ── */}
-        <line x1="16" y1="122" x2="30" y2="122"
-          stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
-
-        {/* ── Right foot brace ── */}
-        <line x1="70" y1="122" x2="84" y2="122"
-          stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
-
-        {/* ── Ground shadow ── */}
-        <ellipse cx="50" cy="130" rx="32" ry="5"
-          fill="rgba(255,255,255,0.1)"/>
-
-      </svg>
+      <img
+        src="/spark-logo.png"
+        alt="SPARK logo"
+        style={{ width: 180, height: 180, objectFit: 'contain', marginBottom: 16 }}
+      />
 
       {/* App name */}
       <div style={{
