@@ -9,7 +9,7 @@ export default function NavBar({ active, setActive }) {
     <div style={{
       display: 'flex', background: '#fff',
       borderTop: '1px solid #f3f4f6', padding: '8px 0 4px',
-      paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom))',
       flexShrink: 0,
     }}>
       {tabs.map(t => (

@@ -143,11 +143,7 @@ export default function App() {
           </div>
         )}
       </div>
-      {showNav && (
-        <div style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: '#fff' }}>
-          <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />
-        </div>
-      )}
+      {showNav && <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />}
     </div>
   )
 }
