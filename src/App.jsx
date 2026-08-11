@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import SplashScreen from './SplashScreen'
 import ParkingMap from './ParkingMap'
 import DetailScreen from './DetailScreen'
 import FilterScreen from './FilterScreen'
@@ -20,6 +21,7 @@ function distance(lat1, lng1, lat2, lng2) {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true)
   const [screen, setScreen] = useState('map')
   const [navTab, setNavTab] = useState('map')
   const [selectedSpot, setSelectedSpot] = useState(null)
@@ -59,6 +61,8 @@ export default function App() {
 
   const showNav = screen === 'map' || screen === 'saved' || screen === 'history' || screen === 'profile'
   const activeOrders = orders.filter(o => o.endTime > Date.now())
+
+  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
 
   if (navSpot) return (
     <NavigationScreen
