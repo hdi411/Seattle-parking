@@ -31,7 +31,7 @@ export default function SplashScreen({ onDone }) {
         letterSpacing: '-0.5px', lineHeight: 1.1,
         textAlign: 'center',
       }}>
-        Seattle Parking
+        Seattle Parking Finder Map
       </div>
 
       {/* Powered by */}
