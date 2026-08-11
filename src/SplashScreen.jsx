@@ -22,7 +22,7 @@ export default function SplashScreen({ onDone }) {
       <img
         src="/spark-logo.png"
         alt="SPARK logo"
-        style={{ width: 180, height: 180, objectFit: 'contain', marginBottom: 16 }}
+        style={{ width: 260, height: 260, objectFit: 'contain', marginBottom: 8 }}
       />
 
       {/* App name */}
