@@ -15,36 +15,71 @@ export default function SplashScreen({ onDone }) {
       background: 'linear-gradient(160deg, #1e40af 0%, #1d6fd8 50%, #0ea5e9 100%)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      gap: 0,
       opacity: fading ? 0 : 1,
       transition: 'opacity 0.6s ease',
     }}>
 
-      {/* Logo */}
-      <svg width="120" height="120" viewBox="0 0 120 120" fill="none" style={{ marginBottom: 24 }}>
-        {/* Space Needle stem + P shape */}
-        <ellipse cx="60" cy="108" rx="28" ry="7" fill="rgba(255,255,255,0.15)"/>
-        {/* Map grid at bottom */}
-        <ellipse cx="60" cy="102" rx="22" ry="5" fill="rgba(255,255,255,0.2)"/>
-        <line x1="42" y1="97" x2="42" y2="107" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-        <line x1="52" y1="97" x2="52" y2="107" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-        <line x1="62" y1="97" x2="62" y2="107" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-        <line x1="72" y1="97" x2="72" y2="107" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-        {/* Needle + P combined */}
-        <path d="M54 95 L54 50 L54 45" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-        {/* Needle top disc */}
-        <ellipse cx="54" cy="44" rx="16" ry="5" fill="#fff" opacity="0.9"/>
-        <ellipse cx="54" cy="38" rx="10" ry="4" fill="#fff"/>
-        {/* P curve on right */}
-        <path d="M54 28 Q54 8 76 20 Q88 28 76 42 Q66 50 54 48"
-          stroke="#fff" strokeWidth="8" strokeLinecap="round" fill="none"/>
-        {/* Star */}
-        <path d="M82 14 L83.5 18 L88 18 L84.5 21 L86 25 L82 22.5 L78 25 L79.5 21 L76 18 L80.5 18 Z"
-          fill="rgba(255,255,255,0.9)"/>
-        {/* Parking pin at bottom of needle */}
-        <circle cx="54" cy="90" r="10" fill="#10b981" stroke="#fff" strokeWidth="2.5"/>
-        <text x="54" y="94.5" textAnchor="middle" fontSize="11" fontWeight="900" fill="#fff">P</text>
-        <path d="M54 100 L50 90 L58 90 Z" fill="#10b981"/>
+      {/*
+        Space Needle logo — clean geometric version:
+        Spire → upper obs ring → upper stem → saucer (= P sign) → lower stem → tripod legs
+      */}
+      <svg width="100" height="148" viewBox="0 0 100 148" fill="none" style={{ marginBottom: 28 }}>
+
+        {/* ── Spire ── */}
+        <line x1="50" y1="2" x2="50" y2="18"
+          stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+
+        {/* ── Upper observation ring ── */}
+        <ellipse cx="50" cy="18" rx="7" ry="2.5" fill="rgba(255,255,255,0.55)"/>
+
+        {/* ── Upper stem (obs ring → saucer) ── */}
+        <rect x="47.5" y="20" width="5" height="13" rx="2.5" fill="white"/>
+
+        {/* ── Saucer dome arch (top of flying disc) ── */}
+        <path d="M22 38 Q50 24 78 38"
+          fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="2"/>
+
+        {/* ── Saucer rim (outer ring) ── */}
+        <ellipse cx="50" cy="40" rx="28" ry="8"
+          fill="rgba(255,255,255,0.12)" stroke="white" strokeWidth="2"/>
+
+        {/* ── P parking sign (the saucer centre) ── */}
+        <circle cx="50" cy="38" r="20" fill="#1e40af"/>
+        <circle cx="50" cy="38" r="19" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5"/>
+        <text
+          x="50" y="46"
+          textAnchor="middle"
+          fontSize="23" fontWeight="900" fill="white"
+          fontFamily="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        >P</text>
+
+        {/* ── Lower stem (saucer → base ring) ── */}
+        <rect x="47" y="58" width="6" height="32" rx="3" fill="white"/>
+
+        {/* ── Base ring ── */}
+        <ellipse cx="50" cy="90" rx="13" ry="4.5"
+          fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="1.5"/>
+
+        {/* ── Tripod left leg ── */}
+        <path d="M46 93 Q36 108 20 122"
+          stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+
+        {/* ── Tripod right leg ── */}
+        <path d="M54 93 Q64 108 80 122"
+          stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+
+        {/* ── Left foot brace ── */}
+        <line x1="16" y1="122" x2="30" y2="122"
+          stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
+
+        {/* ── Right foot brace ── */}
+        <line x1="70" y1="122" x2="84" y2="122"
+          stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
+
+        {/* ── Ground shadow ── */}
+        <ellipse cx="50" cy="130" rx="32" ry="5"
+          fill="rgba(255,255,255,0.1)"/>
+
       </svg>
 
       {/* App name */}
@@ -58,7 +93,7 @@ export default function SplashScreen({ onDone }) {
 
       {/* Powered by */}
       <div style={{
-        marginTop: 12, fontSize: 13, color: 'rgba(255,255,255,0.65)',
+        marginTop: 10, fontSize: 13, color: 'rgba(255,255,255,0.65)',
         fontWeight: 500, letterSpacing: '0.05em',
       }}>
         powered by <span style={{ color: '#fff', fontWeight: 700 }}>SPARK</span>
