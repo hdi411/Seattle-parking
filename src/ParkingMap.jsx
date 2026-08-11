@@ -26,7 +26,6 @@ function RecenterMap({ position, zoom }) {
   return null
 }
 
-// Double-click anywhere on map → move pin + load nearby spots
 function MapDoubleClickHandler({ onDoubleClick }) {
   useMapEvents({
     dblclick(e) {
@@ -72,7 +71,6 @@ function UserMarker({ position, zoom }) {
   )
 }
 
-// User location icon — red pin
 const userIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -86,7 +84,6 @@ function spotColor(type, isRecommended) {
   return '#2563eb'
 }
 
-// Price bubble marker — no external image fetch
 function createPriceIcon(spot, isRecommended) {
   const price = spot.rate_1hr ? `$${spot.rate_1hr}` : 'P'
   const bg = spotColor(spot.type, isRecommended)
@@ -176,7 +173,6 @@ export default function ParkingMap({
   onNavigate,
 }) {
   const [suggestions, setSuggestions] = useState([])
-  const [showSpots, setShowSpots] = useState(true)
   const [userPosition, setUserPosition] = useState(null)
   const [aiCollapsed, setAiCollapsed] = useState(false)
   const lastPositionRef = useRef(null)
@@ -242,7 +238,6 @@ export default function ParkingMap({
     )
   }
 
-  // Double-click on map: move pin to that point, load nearby spots
   function handleMapDoubleClick(lat, lng) {
     setPosition([lat, lng])
     setZoom(16)
@@ -250,7 +245,7 @@ export default function ParkingMap({
     setSpots(nearby)
     setHasSearched(true)
     setSearchQuery('')
-    lastPositionRef.current = null // force AI to re-run for new location
+    lastPositionRef.current = null
   }
 
   const myLocationSuggestion = userPosition ? [{
@@ -371,12 +366,7 @@ export default function ParkingMap({
             )}
           </div>
 
-          <button onClick={() => setShowSpots(s => !s)} style={{
-            background: showSpots ? '#22c55e' : '#e5e7eb', border: 'none', borderRadius: 8,
-            padding: '10px 11px', color: showSpots ? '#fff' : '#6b7280',
-            fontWeight: 600, fontSize: 15, cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0,
-          }}>🅿️</button>
+          {/* My Receipt button — replaces old Orders icon-only button */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <button onClick={onOrdersOpen} style={{
               background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
@@ -472,7 +462,7 @@ export default function ParkingMap({
         <ZoomControls />
         <MapDoubleClickHandler onDoubleClick={handleMapDoubleClick} />
         <UserMarker position={position} zoom={zoom} />
-        {showSpots && filteredSpots.map(spot => {
+        {filteredSpots.map(spot => {
           const isSaved = savedSpots?.some(s => s.id === spot.id)
           const isRecommended = recommendedId && spot.id === recommendedId
           return (
