@@ -34,7 +34,7 @@ export default function OrdersScreen({ orders, onBack }) {
           background: '#f3f4f6', border: 'none', borderRadius: 10,
           padding: '8px 12px', cursor: 'pointer', fontSize: 18,
         }}>←</button>
-        <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>My Orders</div>
+        <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>My Receipts</div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
