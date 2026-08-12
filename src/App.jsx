@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { AuthProvider } from './AuthContext'
 import { useAuth } from './AuthContext'
 import { db } from './firebase'
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore'
+import { collection, addDoc, getDocs, query, orderBy, doc, setDoc } from 'firebase/firestore'
 import SplashScreen from './SplashScreen'
 import ParkingMap from './ParkingMap'
 import DetailScreen from './DetailScreen'
@@ -36,8 +36,10 @@ function AppInner() {
   const [navTab, setNavTab] = useState('map')
   const [selectedSpot, setSelectedSpot] = useState(null)
   const [selectedHours, setSelectedHours] = useState(2)
-  // Start empty — loaded from Firestore (logged in) or stay in-memory only (not logged in)
-  const [orders, setOrders] = useState([])
+  // Orders: always load from localStorage so receipts survive refresh even when not logged in
+  const [orders, setOrders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]') } catch { return [] }
+  })
   const [savedSpots, setSavedSpots] = useState([])
   const [position, setPosition] = useState([47.6097, -122.3331])
   const [userPosition, setUserPosition] = useState(null)
@@ -56,21 +58,27 @@ function AppInner() {
   const [aiLoading, setAiLoading] = useState(false)
   const [recommendedId, setRecommendedId] = useState(null)
 
-  // Load from Firestore when logged in; clear when logged out
+  // Persist orders to localStorage on every change (works even without login)
+  useEffect(() => {
+    localStorage.setItem(LS_KEY, JSON.stringify(orders))
+  }, [orders])
+
+  // Load from Firestore when logged in; clear search history when logged out
   useEffect(() => {
     if (user === undefined) return // still loading auth state
     if (!user) {
-      // Not logged in — clear persisted data, keep session in-memory only
-      setOrders([])
-      setSearchHistory([])
-      localStorage.removeItem(LS_KEY)
-      localStorage.removeItem(LS_SEARCH_KEY)
+      setSearchHistory([]) // search history is session-only when not logged in
       return
     }
-    // Logged in — load orders from Firestore
+    // Logged in — merge localStorage orders with Firestore orders
     const ordersRef = collection(db, 'users', user.uid, 'orders')
     getDocs(query(ordersRef, orderBy('startTime', 'desc'))).then(snap => {
-      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      const firestoreOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      setOrders(prev => {
+        const ids = new Set(firestoreOrders.map(o => o.id))
+        const localOnly = prev.filter(o => !ids.has(o.id))
+        return [...firestoreOrders, ...localOnly]
+      })
     }).catch(console.error)
     // Load search history from Firestore
     const searchRef = collection(db, 'users', user.uid, 'searches')
@@ -84,10 +92,11 @@ function AppInner() {
       const filtered = prev.filter(s => s.query !== entry.query)
       return [entry, ...filtered].slice(0, 50)
     })
-    // Only persist if logged in
+    // Use setDoc with place name as doc ID — auto-deduplicates same location
     if (user) {
-      const ref = collection(db, 'users', user.uid, 'searches')
-      addDoc(ref, entry).catch(console.error)
+      const docId = entry.query.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100)
+      const ref = doc(db, 'users', user.uid, 'searches', docId)
+      setDoc(ref, entry).catch(console.error)
     }
   }
 
