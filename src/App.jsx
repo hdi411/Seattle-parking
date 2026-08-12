@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react'
+import { AuthProvider } from './AuthContext'
+import { useAuth } from './AuthContext'
+import { db } from './firebase'
+import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore'
 import SplashScreen from './SplashScreen'
 import ParkingMap from './ParkingMap'
 import DetailScreen from './DetailScreen'
@@ -7,6 +11,8 @@ import PaymentScreen from './PaymentScreen'
 import SuccessScreen from './SuccessScreen'
 import OrdersScreen from './OrdersScreen'
 import SavedScreen from './SavedScreen'
+import HistoryScreen from './HistoryScreen'
+import ProfileScreen from './ProfileScreen'
 import NavBar from './NavBar'
 import NavigationScreen from './NavigationScreen'
 import allSpots from './parking_lots.json'
@@ -20,13 +26,19 @@ function distance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
 }
 
-export default function App() {
+const LS_KEY = 'seattle-parking-orders'
+
+function AppInner() {
+  const { user } = useAuth()
   const [showSplash, setShowSplash] = useState(true)
   const [screen, setScreen] = useState('map')
   const [navTab, setNavTab] = useState('map')
   const [selectedSpot, setSelectedSpot] = useState(null)
   const [selectedHours, setSelectedHours] = useState(2)
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState(() => {
+    // Load from localStorage on first render
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]') } catch { return [] }
+  })
   const [savedSpots, setSavedSpots] = useState([])
   const [position, setPosition] = useState([47.6097, -122.3331])
   const [userPosition, setUserPosition] = useState(null)
@@ -38,12 +50,43 @@ export default function App() {
     maxRate: 6,
     radius: 1000,
   })
-
   const [searchQuery, setSearchQuery] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
   const [aiTip, setAiTip] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [recommendedId, setRecommendedId] = useState(null)
+
+  // Load orders from Firestore when user logs in
+  useEffect(() => {
+    if (!user) return
+    const ref = collection(db, 'users', user.uid, 'orders')
+    getDocs(query(ref, orderBy('startTime', 'desc'))).then(snap => {
+      const firestoreOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      // Merge with localStorage orders (avoid duplicates by id)
+      setOrders(prev => {
+        const ids = new Set(firestoreOrders.map(o => o.id))
+        const localOnly = prev.filter(o => !ids.has(o.id))
+        return [...firestoreOrders, ...localOnly]
+      })
+    }).catch(console.error)
+  }, [user])
+
+  // Persist orders to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(LS_KEY, JSON.stringify(orders))
+  }, [orders])
+
+  // Save new order to Firestore if logged in
+  async function handleOrderCreated(order) {
+    const newOrder = { ...order, startTime: Date.now() }
+    setOrders(prev => [newOrder, ...prev])
+    if (user) {
+      try {
+        const ref = collection(db, 'users', user.uid, 'orders')
+        await addDoc(ref, newOrder)
+      } catch (e) { console.error('Firestore write failed:', e) }
+    }
+  }
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -123,7 +166,7 @@ export default function App() {
             spot={selectedSpot}
             hours={selectedHours}
             onHome={() => { setScreen('map'); setNavTab('map') }}
-            onOrderCreated={order => setOrders(prev => [...prev, order])}
+            onOrderCreated={handleOrderCreated}
           />
         )}
         {screen === 'orders' && (
@@ -137,17 +180,21 @@ export default function App() {
           />
         )}
         {screen === 'history' && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', fontSize: 16 }}>
-            No history yet
-          </div>
+          <HistoryScreen orders={orders} />
         )}
         {screen === 'profile' && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', fontSize: 16 }}>
-            Profile coming soon
-          </div>
+          <ProfileScreen />
         )}
       </div>
       {showNav && <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   )
 }
