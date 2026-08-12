@@ -24,8 +24,12 @@ export default function SuccessScreen({ spot, hours, onHome, onOrderCreated }) {
         width: 90, height: 90, borderRadius: '50%',
         background: 'linear-gradient(135deg, #22c55e, #16a34a)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 44, marginBottom: 24, boxShadow: '0 8px 32px rgba(34,197,94,0.35)',
-      }}>✓</div>
+        marginBottom: 24, boxShadow: '0 8px 32px rgba(34,197,94,0.35)',
+      }}>
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
       <div style={{ fontWeight: 800, fontSize: 26, color: '#111827', marginBottom: 8 }}>Parking Reserved!</div>
       <div style={{ color: '#6b7280', fontSize: 15, marginBottom: 28 }}>Your spot is confirmed and ready.</div>
 
