@@ -125845,5 +125845,55 @@
     "address": "",
     "stalls": null,
     "rate_1hr": null
+  },
+  {
+    "id": "osm-way-37226204",
+    "name": "Rainier",
+    "type": "underground",
+    "lat": 47.6295427,
+    "lng": -122.1288572,
+    "address": "158th Court Northeast",
+    "stalls": null,
+    "rate_1hr": null
+  },
+  {
+    "id": "osm-way-37354816",
+    "name": "Baker",
+    "type": "underground",
+    "lat": 47.6302257,
+    "lng": -122.1290567,
+    "address": "158th Court Northeast",
+    "stalls": null,
+    "rate_1hr": null
+  },
+  {
+    "id": "osm-way-188126233",
+    "name": "Parking",
+    "type": "underground",
+    "lat": 47.6177652,
+    "lng": -122.1973585,
+    "address": "",
+    "stalls": null,
+    "rate_1hr": null
+  },
+  {
+    "id": "osm-way-204856772",
+    "name": "Parking",
+    "type": "multi-storey",
+    "lat": 47.6433703,
+    "lng": -122.3290653,
+    "address": "Fairview Avenue East",
+    "stalls": null,
+    "rate_1hr": null
+  },
+  {
+    "id": "osm-way-231265768",
+    "name": "City Views Apartments",
+    "type": "underground",
+    "lat": 47.5687382,
+    "lng": -122.3717905,
+    "address": "Southwest Bradford Street",
+    "stalls": null,
+    "rate_1hr": null
   }
 ]
