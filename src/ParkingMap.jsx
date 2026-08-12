@@ -167,12 +167,13 @@ async function getAiRecommendation(spots, lat, lng) {
 }
 
 export default function ParkingMap({
-  prefs, onSpotSelect, onFilterOpen, onOrdersOpen, activeOrderCount,
+  prefs, onSpotSelect, onFilterOpen,
   position, setPosition, zoom, setZoom, spots, setSpots,
   savedSpots, setSavedSpots,
   searchQuery, setSearchQuery,
   hasSearched, setHasSearched,
   onSearch,
+  searchHistory,
   aiTip, setAiTip,
   aiLoading, setAiLoading,
   recommendedId, setRecommendedId,
@@ -181,6 +182,7 @@ export default function ParkingMap({
   const [suggestions, setSuggestions] = useState([])
   const [userPosition, setUserPosition] = useState(null)
   const [aiCollapsed, setAiCollapsed] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const lastPositionRef = useRef(null)
   const aiCacheRef = useRef({})
 
@@ -387,31 +389,59 @@ export default function ParkingMap({
             )}
           </div>
 
-          {/* My Receipt button */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button onClick={onOrdersOpen} style={{
-              background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
-              padding: '10px 11px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2"/>
-                <line x1="8" y1="8" x2="16" y2="8"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-                <line x1="8" y1="16" x2="12" y2="16"/>
-              </svg>
-            </button>
-            {activeOrderCount > 0 && (
-              <div style={{
-                position: 'absolute', top: -6, right: -6,
-                background: '#ef4444', color: '#fff', borderRadius: '50%',
-                width: 18, height: 18, fontSize: 11, fontWeight: 700,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{activeOrderCount}</div>
+          {/* Search history button */}
+          <button onClick={() => setShowHistory(h => !h)} style={{
+            background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 8,
+            padding: '10px 11px', cursor: 'pointer', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Search history panel */}
+        {showHistory && (
+          <div style={{
+            marginTop: 8, background: '#fff', borderRadius: 14,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)', overflow: 'hidden',
+          }}>
+            <div style={{
+              padding: '12px 14px 8px', fontWeight: 700, fontSize: 13,
+              color: '#6b7280', borderBottom: '1px solid #f3f4f6',
+            }}>Recent Searches</div>
+            {(!searchHistory || searchHistory.length === 0) ? (
+              <div style={{ padding: '14px', fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
+                No recent searches
+              </div>
+            ) : (
+              searchHistory.slice(0, 6).map((item, i) => (
+                <button key={i} onClick={() => {
+                  setPosition([item.lat, item.lng])
+                  setZoom(16)
+                  setSearchQuery(item.query)
+                  setHasSearched(true)
+                  setShowHistory(false)
+                }} style={{
+                  width: '100%', textAlign: 'left', padding: '10px 14px',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  fontSize: 14, color: '#111827', borderBottom: '1px solid #f9fafb',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.query}
+                  </span>
+                </button>
+              ))
             )}
           </div>
-        </div>
+        )}
 
         {/* AI card */}
         {aiCollapsed ? (

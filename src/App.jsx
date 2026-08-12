@@ -36,10 +36,8 @@ function AppInner() {
   const [navTab, setNavTab] = useState('map')
   const [selectedSpot, setSelectedSpot] = useState(null)
   const [selectedHours, setSelectedHours] = useState(2)
-  const [orders, setOrders] = useState(() => {
-    // Load from localStorage on first render
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]') } catch { return [] }
-  })
+  // Start empty — loaded from Firestore (logged in) or stay in-memory only (not logged in)
+  const [orders, setOrders] = useState([])
   const [savedSpots, setSavedSpots] = useState([])
   const [position, setPosition] = useState([47.6097, -122.3331])
   const [userPosition, setUserPosition] = useState(null)
@@ -53,44 +51,47 @@ function AppInner() {
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
-  const [searchHistory, setSearchHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(LS_SEARCH_KEY) || '[]') } catch { return [] }
-  })
+  const [searchHistory, setSearchHistory] = useState([])
   const [aiTip, setAiTip] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [recommendedId, setRecommendedId] = useState(null)
 
-  // Load orders from Firestore when user logs in
+  // Load from Firestore when logged in; clear when logged out
   useEffect(() => {
-    if (!user) return
-    const ref = collection(db, 'users', user.uid, 'orders')
-    getDocs(query(ref, orderBy('startTime', 'desc'))).then(snap => {
-      const firestoreOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      // Merge with localStorage orders (avoid duplicates by id)
-      setOrders(prev => {
-        const ids = new Set(firestoreOrders.map(o => o.id))
-        const localOnly = prev.filter(o => !ids.has(o.id))
-        return [...firestoreOrders, ...localOnly]
-      })
+    if (user === undefined) return // still loading auth state
+    if (!user) {
+      // Not logged in — clear persisted data, keep session in-memory only
+      setOrders([])
+      setSearchHistory([])
+      localStorage.removeItem(LS_KEY)
+      localStorage.removeItem(LS_SEARCH_KEY)
+      return
+    }
+    // Logged in — load orders from Firestore
+    const ordersRef = collection(db, 'users', user.uid, 'orders')
+    getDocs(query(ordersRef, orderBy('startTime', 'desc'))).then(snap => {
+      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    }).catch(console.error)
+    // Load search history from Firestore
+    const searchRef = collection(db, 'users', user.uid, 'searches')
+    getDocs(query(searchRef, orderBy('timestamp', 'desc'))).then(snap => {
+      setSearchHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     }).catch(console.error)
   }, [user])
 
-  // Persist orders to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(orders))
-  }, [orders])
-
   function handleSearch(entry) {
     setSearchHistory(prev => {
-      // Deduplicate by query string, keep latest at top, max 50
       const filtered = prev.filter(s => s.query !== entry.query)
-      const updated = [entry, ...filtered].slice(0, 50)
-      localStorage.setItem(LS_SEARCH_KEY, JSON.stringify(updated))
-      return updated
+      return [entry, ...filtered].slice(0, 50)
     })
+    // Only persist if logged in
+    if (user) {
+      const ref = collection(db, 'users', user.uid, 'searches')
+      addDoc(ref, entry).catch(console.error)
+    }
   }
 
-  // Save new order to Firestore if logged in
+  // Save new order — only persists to Firestore if logged in
   async function handleOrderCreated(order) {
     const newOrder = { ...order, startTime: Date.now() }
     setOrders(prev => [newOrder, ...prev])
@@ -151,10 +152,9 @@ function AppInner() {
             aiLoading={aiLoading} setAiLoading={setAiLoading}
             recommendedId={recommendedId} setRecommendedId={setRecommendedId}
             onSearch={handleSearch}
+            searchHistory={searchHistory}
             onSpotSelect={spot => { setSelectedSpot(spot); setScreen('detail') }}
             onFilterOpen={() => setScreen('filter')}
-            onOrdersOpen={() => setScreen('orders')}
-            activeOrderCount={activeOrders.length}
             onNavigate={setNavSpot}
           />
         )}
