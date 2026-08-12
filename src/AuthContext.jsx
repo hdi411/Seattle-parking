@@ -8,8 +8,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined) // undefined = still loading
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser)
-    return unsub
+    let mounted = true
+    const unsub = onAuthStateChanged(auth, u => {
+      if (mounted) setUser(u)
+    })
+    return () => {
+      mounted = false
+      unsub()
+    }
   }, [])
 
   const signIn = () => signInWithPopup(auth, googleProvider)
