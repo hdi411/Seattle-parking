@@ -332,7 +332,9 @@ export default function ParkingMap({
               {searchQuery && (
                 <button onClick={() => {
                   setSearchQuery(''); setSuggestions([])
-                  setHasSearched(false); setAiTip(null); setRecommendedId(null)
+                  setHasSearched(false)
+                  lastPositionRef.current = null
+                  // Keep aiTip + recommendedId — user is still at the same location
                 }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: 0 }}>
                   ×
                 </button>
