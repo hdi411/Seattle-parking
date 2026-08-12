@@ -146,9 +146,10 @@ async function getAiRecommendation(spots, lat, lng) {
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
+      temperature: 0,
       messages: [{
         role: 'user',
-        content: `Nearby parking:\n${spotsText}\n\nReply with JSON only: {"recommended_index":<number>,"explanation":"<1 sentence, mention price and distance>"}`,
+        content: `Nearby parking options:\n${spotsText}\n\nPick the single best option considering both price (lower is better) and walking distance (closer is better). Prioritize price if distances are similar. Once you pick, do not change your answer.\n\nReply with JSON only: {"recommended_index":<number>,"explanation":"<1 sentence mentioning price and distance>"}`,
       }],
       max_tokens: 80,
     }),
@@ -156,7 +157,6 @@ async function getAiRecommendation(spots, lat, lng) {
   const data = await res.json()
   const text = data.choices?.[0]?.message?.content || ''
   try {
-    // Extract JSON even if GPT wraps it in extra text
     const match = text.match(/\{[\s\S]*\}/)
     const parsed = JSON.parse(match ? match[0] : text)
     const picked = top[parsed.recommended_index]
@@ -233,7 +233,6 @@ export default function ParkingMap({
         setAiLoading(false)
       })
       .catch(() => {
-        // Reset loading state on any error (network, 401, rate limit, etc.)
         setAiLoading(false)
       })
   }, [position, filteredSpots])
