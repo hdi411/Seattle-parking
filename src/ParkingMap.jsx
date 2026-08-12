@@ -318,7 +318,7 @@ export default function ParkingMap({
               <input
                 value={searchQuery}
                 onChange={e => { setSearchQuery(e.target.value); fetchSuggestions(e.target.value) }}
-                onFocus={() => { if (!searchQuery) setSuggestions(myLocationSuggestion) }}
+                onFocus={() => { if (searchQuery) fetchSuggestions(searchQuery) }}
                 onBlur={() => setTimeout(() => setSuggestions([]), 150)}
                 onKeyDown={e => {
                   if (e.key === 'Escape') setSuggestions([])
