@@ -324,7 +324,7 @@ export default function ParkingMap({
                   if (e.key === 'Escape') setSuggestions([])
                   if (e.key === 'Enter' && suggestions.length > 0) selectSuggestion(suggestions[0])
                 }}
-                placeholder="Double tap to pin..."
+                placeholder="Search or double tap to pin..."
                 style={{
                   flex: 1, border: 'none', outline: 'none',
                   fontSize: 15, fontWeight: 600, color: '#111827', background: 'transparent',
