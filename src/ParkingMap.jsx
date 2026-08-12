@@ -266,7 +266,11 @@ export default function ParkingMap({
     lastPositionRef.current = null
   }
 
-  const myLocationSuggestion = userPosition ? [{
+  // Only show "My Location" option when map is NOT already at user's position
+  const atUserLocation = userPosition &&
+    Math.abs(position[0] - userPosition[0]) < 0.0001 &&
+    Math.abs(position[1] - userPosition[1]) < 0.0001
+  const myLocationSuggestion = userPosition && !atUserLocation ? [{
     place_id: 'my-location',
     display_name: 'My Location',
     lat: userPosition[0],
