@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Seattle Parking',
-        short_name: 'Seattle Parking',
+        short_name: 'Parking',
         description: 'Find parking in Seattle',
         theme_color: '#3b82f6',
         background_color: '#ffffff',
@@ -33,6 +33,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB limit
         // Cache app shell but NOT map tiles (OSM terms of service)
         globPatterns: ['**/*.{js,css,html,woff2}'],
         runtimeCaching: [
