@@ -1,76 +1,89 @@
-import { useAuth } from './AuthContext'
+const LS_SEARCH_KEY = 'seattle-parking-searches'
 
-function formatDate(ts) {
+function timeAgo(ts) {
   if (!ts) return ''
-  return new Date(ts).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-  })
+  const diff = Date.now() - ts
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function HistoryScreen({ orders }) {
-  const { user } = useAuth()
+export default function HistoryScreen({ searchHistory, setSearchHistory }) {
+  function clearAll() {
+    setSearchHistory([])
+    localStorage.removeItem(LS_SEARCH_KEY)
+  }
 
-  const sorted = [...orders].sort((a, b) => (b.startTime || 0) - (a.startTime || 0))
+  function removeItem(index) {
+    setSearchHistory(prev => {
+      const updated = prev.filter((_, i) => i !== index)
+      localStorage.setItem(LS_SEARCH_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f9fafb' }}>
       {/* Header */}
       <div style={{
-        background: '#fff', padding: 20,
+        background: '#fff', padding: '20px 20px 16px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>History</div>
-        {!user && (
-          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
-            Sign in from Profile to save history across devices
-          </div>
+        <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>Search History</div>
+        {searchHistory.length > 0 && (
+          <button onClick={clearAll} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 13, color: '#ef4444', fontWeight: 600, padding: '4px 8px',
+          }}>Clear all</button>
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px' }}>
-        {sorted.length === 0 ? (
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+        {searchHistory.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', height: '60%', gap: 12,
           }}>
-            <div style={{ fontSize: 48 }}>🅿️</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#374151' }}>No parking history yet</div>
+            <div style={{ fontSize: 48 }}>🔍</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#374151' }}>No search history</div>
             <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>
-              Your parking sessions will appear here
+              Searches you make will appear here
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {sorted.map((order, i) => (
-              <div key={order.id || i} style={{
-                background: '#fff', borderRadius: 14,
-                padding: '14px 16px',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {searchHistory.map((item, i) => (
+              <div key={i} style={{
+                background: '#fff', borderRadius: 12,
+                padding: '12px 14px',
+                display: 'flex', alignItems: 'center', gap: 12,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>
-                      {order.spot?.name || 'Parking'}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                      {order.spot?.address || ''}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
-                      {formatDate(order.startTime)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: '#111827' }}>
-                      ${((order.spot?.rate_1hr || 0) * (order.hours || 1)).toFixed(2)}
-                    </div>
-                    <div style={{
-                      fontSize: 11, marginTop: 4, fontWeight: 600,
-                      color: order.endTime > Date.now() ? '#16a34a' : '#9ca3af',
-                    }}>
-                      {order.endTime > Date.now() ? 'Active' : `${order.hours}h`}
-                    </div>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: '#eff6ff', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, fontSize: 18,
+                }}>📍</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: 700, fontSize: 14, color: '#111827',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{item.query}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                    {timeAgo(item.timestamp)}
                   </div>
                 </div>
+                <button onClick={() => removeItem(i)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#d1d5db', fontSize: 18, padding: '4px', flexShrink: 0,
+                }}>×</button>
               </div>
             ))}
           </div>

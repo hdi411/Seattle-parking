@@ -27,6 +27,7 @@ function distance(lat1, lng1, lat2, lng2) {
 }
 
 const LS_KEY = 'seattle-parking-orders'
+const LS_SEARCH_KEY = 'seattle-parking-searches'
 
 function AppInner() {
   const { user } = useAuth()
@@ -52,6 +53,9 @@ function AppInner() {
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
+  const [searchHistory, setSearchHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_SEARCH_KEY) || '[]') } catch { return [] }
+  })
   const [aiTip, setAiTip] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [recommendedId, setRecommendedId] = useState(null)
@@ -75,6 +79,16 @@ function AppInner() {
   useEffect(() => {
     localStorage.setItem(LS_KEY, JSON.stringify(orders))
   }, [orders])
+
+  function handleSearch(entry) {
+    setSearchHistory(prev => {
+      // Deduplicate by query string, keep latest at top, max 50
+      const filtered = prev.filter(s => s.query !== entry.query)
+      const updated = [entry, ...filtered].slice(0, 50)
+      localStorage.setItem(LS_SEARCH_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }
 
   // Save new order to Firestore if logged in
   async function handleOrderCreated(order) {
@@ -136,6 +150,7 @@ function AppInner() {
             aiTip={aiTip} setAiTip={setAiTip}
             aiLoading={aiLoading} setAiLoading={setAiLoading}
             recommendedId={recommendedId} setRecommendedId={setRecommendedId}
+            onSearch={handleSearch}
             onSpotSelect={spot => { setSelectedSpot(spot); setScreen('detail') }}
             onFilterOpen={() => setScreen('filter')}
             onOrdersOpen={() => setScreen('orders')}
@@ -180,7 +195,7 @@ function AppInner() {
           />
         )}
         {screen === 'history' && (
-          <HistoryScreen orders={orders} />
+          <HistoryScreen searchHistory={searchHistory} setSearchHistory={setSearchHistory} />
         )}
         {screen === 'profile' && (
           <ProfileScreen />

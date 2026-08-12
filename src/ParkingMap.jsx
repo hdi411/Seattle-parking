@@ -172,6 +172,7 @@ export default function ParkingMap({
   savedSpots, setSavedSpots,
   searchQuery, setSearchQuery,
   hasSearched, setHasSearched,
+  onSearch,
   aiTip, setAiTip,
   aiLoading, setAiLoading,
   recommendedId, setRecommendedId,
@@ -290,8 +291,12 @@ export default function ParkingMap({
     setZoom(16)
     const nearby = allSpots.filter(s => distance(lat, lng, s.lat, s.lng) < (prefs?.radius || 1000))
     setSpots(nearby)
-    setSearchQuery(item.display_name.split(',')[0])
+    const label = item.display_name.split(',')[0]
+    setSearchQuery(label)
     setSuggestions([])
+    if (item.place_id !== 'my-location' && onSearch) {
+      onSearch({ query: label, fullName: item.display_name, lat, lng, timestamp: Date.now() })
+    }
   }
 
   const POPUP_TOP_PADDING = L.point(10, 150)
