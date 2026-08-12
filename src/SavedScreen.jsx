@@ -34,7 +34,7 @@ export default function SavedScreen({ savedSpots, setSavedSpots, onSpotSelect })
         background: '#fff', padding: '16px 20px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flexShrink: 0,
       }}>
-        <div style={{ fontWeight: 800, fontSize: 20, color: '#111827', marginBottom: 12 }}>❤️ Saved</div>
+        <div style={{ fontWeight: 800, fontSize: 20, color: '#111827', marginBottom: 12 }}>⭐ Saved</div>
         {/* Category tabs */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
           {CATEGORIES.map(cat => (
@@ -78,9 +78,9 @@ export default function SavedScreen({ savedSpots, setSavedSpots, onSpotSelect })
                   </div>
                   <button onClick={() => removeSpot(spot.id)} style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 18, color: '#ef4444', padding: '0 0 0 8px',
+                    fontSize: 18, color: '#f59e0b', padding: '0 0 0 8px',
                   }}>
-                    ❤️
+                    ★
                   </button>
                 </div>
 
