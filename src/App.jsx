@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { AuthProvider } from './AuthContext'
 import { useAuth } from './AuthContext'
 import { db } from './firebase'
-import { collection, addDoc, getDocs, query, orderBy, doc, setDoc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, query, orderBy, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import SplashScreen from './SplashScreen'
 import ParkingMap from './ParkingMap'
 import DetailScreen from './DetailScreen'
@@ -63,14 +63,15 @@ function AppInner() {
     localStorage.setItem(LS_KEY, JSON.stringify(orders))
   }, [orders])
 
-  // Load from Firestore when logged in; clear search history when logged out
+  // Load from Firestore when logged in; clear session data when logged out
   useEffect(() => {
     if (user === undefined) return // still loading auth state
     if (!user) {
-      setSearchHistory([]) // search history is session-only when not logged in
+      setSearchHistory([])
+      setSavedSpots([])
       return
     }
-    // Logged in — merge localStorage orders with Firestore orders
+    // Orders — merge localStorage with Firestore
     const ordersRef = collection(db, 'users', user.uid, 'orders')
     getDocs(query(ordersRef, orderBy('startTime', 'desc'))).then(snap => {
       const firestoreOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -80,12 +81,36 @@ function AppInner() {
         return [...firestoreOrders, ...localOnly]
       })
     }).catch(console.error)
-    // Load search history from Firestore
+    // Search history
     const searchRef = collection(db, 'users', user.uid, 'searches')
     getDocs(query(searchRef, orderBy('timestamp', 'desc'))).then(snap => {
       setSearchHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     }).catch(console.error)
+    // Saved spots
+    const savedRef = collection(db, 'users', user.uid, 'saved')
+    getDocs(savedRef).then(snap => {
+      setSavedSpots(snap.docs.map(d => ({ ...d.data() })))
+    }).catch(console.error)
   }, [user])
+
+  // Wrap setSavedSpots to also sync adds/removes to Firestore
+  function handleSetSavedSpots(updater) {
+    setSavedSpots(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      if (!user) return next
+      const prevIds = new Set(prev.map(s => String(s.id)))
+      const nextIds = new Set(next.map(s => String(s.id)))
+      // Added spots
+      next.filter(s => !prevIds.has(String(s.id))).forEach(spot => {
+        setDoc(doc(db, 'users', user.uid, 'saved', String(spot.id)), spot).catch(console.error)
+      })
+      // Removed spots
+      prev.filter(s => !nextIds.has(String(s.id))).forEach(spot => {
+        deleteDoc(doc(db, 'users', user.uid, 'saved', String(spot.id))).catch(console.error)
+      })
+      return next
+    })
+  }
 
   function handleSearch(entry) {
     setSearchHistory(prev => {
@@ -154,7 +179,7 @@ function AppInner() {
             position={position} setPosition={setPosition}
             zoom={zoom} setZoom={setZoom}
             spots={spots} setSpots={setSpots}
-            savedSpots={savedSpots} setSavedSpots={setSavedSpots}
+            savedSpots={savedSpots} setSavedSpots={handleSetSavedSpots}
             searchQuery={searchQuery} setSearchQuery={setSearchQuery}
             hasSearched={hasSearched} setHasSearched={setHasSearched}
             aiTip={aiTip} setAiTip={setAiTip}
@@ -199,7 +224,7 @@ function AppInner() {
         {screen === 'saved' && (
           <SavedScreen
             savedSpots={savedSpots}
-            setSavedSpots={setSavedSpots}
+            setSavedSpots={handleSetSavedSpots}
             onSpotSelect={spot => { setSelectedSpot(spot); setScreen('detail') }}
           />
         )}
