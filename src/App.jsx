@@ -195,13 +195,13 @@ function AppInner() {
           />
         )}
         {screen === 'receipt' && (
-          <HistoryScreen orders={orders} />
+          <OrdersScreen orders={orders} onBack={() => { setScreen('map'); setNavTab('map') }} />
         )}
         {screen === 'profile' && (
           <ProfileScreen />
         )}
       </div>
-      {showNav && <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} />}
+      {showNav && <NavBar active={navTab} setActive={v => { setNavTab(v); setScreen(v) }} orderCount={activeOrders.length} />}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-export default function NavBar({ active, setActive }) {
+export default function NavBar({ active, setActive, orderCount = 0 }) {
   const tabs = [
     {
       id: 'map',
@@ -63,7 +63,19 @@ export default function NavBar({ active, setActive }) {
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px 0',
           }}>
-            {t.icon(isActive)}
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              {t.icon(isActive)}
+              {t.id === 'receipt' && orderCount > 0 && (
+                <div style={{
+                  position: 'absolute', top: -4, right: -6,
+                  background: '#ef4444', borderRadius: '50%',
+                  width: 16, height: 16, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 800, color: '#fff',
+                  border: '1.5px solid #fff',
+                }}>{orderCount > 9 ? '9+' : orderCount}</div>
+              )}
+            </div>
             <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? '#111827' : '#9ca3af' }}>
               {t.label}
             </span>

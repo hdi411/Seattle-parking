@@ -27,13 +27,9 @@ export default function OrdersScreen({ orders, onBack }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f9fafb' }}>
       <div style={{
-        background: '#fff', padding: '20px', display: 'flex', alignItems: 'center',
-        gap: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flexShrink: 0,
+        background: '#fff', padding: 20,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.06)', flexShrink: 0,
       }}>
-        <button onClick={onBack} style={{
-          background: '#f3f4f6', border: 'none', borderRadius: 10,
-          padding: '8px 12px', cursor: 'pointer', fontSize: 18,
-        }}>←</button>
         <div style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>My Receipts</div>
       </div>
 
