@@ -334,7 +334,6 @@ export default function ParkingMap({
                 <button onClick={() => {
                   setSearchQuery(''); setSuggestions([])
                   setHasSearched(false); setAiTip(null); setRecommendedId(null)
-                  goToUserLocation()
                 }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: 0 }}>
                   ×
                 </button>
