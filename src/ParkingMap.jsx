@@ -79,8 +79,9 @@ const userIcon = new L.Icon({
 
 function spotColor(type, isRecommended) {
   if (isRecommended) return '#f97316'
-  if (type === 'multi-storey' || type === 'underground') return '#16a34a'
-  if (type === 'street_side') return '#ca8a04'
+  const t = (type || '').toLowerCase().replace(/[\s_-]/g, '')
+  if (['multistorey','underground','garage','parkinggarage','carpark'].includes(t)) return '#16a34a'
+  if (['streetside','street','onstreet'].includes(t)) return '#ca8a04'
   return '#2563eb'
 }
 
@@ -183,10 +184,18 @@ export default function ParkingMap({
   const aiCacheRef = useRef({})
 
   const filteredSpots = spots.filter(spot => {
+    const t = (spot.type || '').toLowerCase().replace(/[\s_-]/g, '')
+    const isGarage = ['multistorey','underground','garage','parkinggarage','carpark'].includes(t)
+    const isStreet = ['streetside','street','onstreet'].includes(t)
+    const isLot    = ['surface','lot','surfacelot','openparking'].includes(t)
+    const isUnknown = !isGarage && !isStreet && !isLot
+
     const typeMatch =
-      (prefs.types.includes('garage') && (spot.type === 'multi-storey' || spot.type === 'underground')) ||
-      (prefs.types.includes('street') && spot.type === 'street_side') ||
-      (prefs.types.includes('lot') && (spot.type === 'surface' || spot.type === 'lot'))
+      (prefs.types.includes('garage') && isGarage) ||
+      (prefs.types.includes('street') && isStreet) ||
+      (prefs.types.includes('lot')    && isLot) ||
+      isUnknown  // show unrecognised types so nothing gets silently hidden
+
     const rateMatch = !spot.rate_1hr || spot.rate_1hr <= prefs.maxRate
     return typeMatch && rateMatch
   })
