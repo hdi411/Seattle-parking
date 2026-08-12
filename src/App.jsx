@@ -116,7 +116,7 @@ function AppInner() {
     )
   }, [])
 
-  const showNav = screen === 'map' || screen === 'saved' || screen === 'history' || screen === 'profile'
+  const showNav = screen === 'map' || screen === 'saved' || screen === 'receipt' || screen === 'profile'
   const activeOrders = orders.filter(o => o.endTime > Date.now())
 
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
@@ -194,8 +194,8 @@ function AppInner() {
             onSpotSelect={spot => { setSelectedSpot(spot); setScreen('detail') }}
           />
         )}
-        {screen === 'history' && (
-          <HistoryScreen searchHistory={searchHistory} setSearchHistory={setSearchHistory} />
+        {screen === 'receipt' && (
+          <HistoryScreen orders={orders} />
         )}
         {screen === 'profile' && (
           <ProfileScreen />
