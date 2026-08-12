@@ -331,6 +331,7 @@ export default function NavigationScreen({ spot, userPosition, onBack }) {
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000,
           background: '#1e293b', padding: '12px 16px',
+          paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
