@@ -322,7 +322,7 @@ export default function ParkingMap({
                 onBlur={() => setTimeout(() => setSuggestions([]), 150)}
                 onKeyDown={e => {
                   if (e.key === 'Escape') setSuggestions([])
-                  if (e.key === 'Enter' && suggestions.length > 0) selectSuggestion(suggestions[0])
+                  if (e.key === 'Enter' && searchQuery.trim() && suggestions.length > 0) selectSuggestion(suggestions[0])
                 }}
                 placeholder="Search or double tap to pin..."
                 style={{
