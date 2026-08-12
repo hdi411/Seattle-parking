@@ -496,26 +496,34 @@ export default function ParkingMap({
                 {spot.address}<br />
                 Stalls: {spot.stalls}<br />
                 {spot.rate_1hr && `$${spot.rate_1hr}/hr`}<br />
-                <button onClick={() => onSpotSelect(spot)} style={{
-                  marginTop: 8, padding: '6px 12px', background: '#3b82f6',
-                  color: '#fff', border: 'none', borderRadius: 8,
-                  fontWeight: 600, cursor: 'pointer', width: '100%',
-                }}>View Details →</button>
-                <button onClick={() => onNavigate(spot)} style={{
-                  marginTop: 6, padding: '6px 12px', background: '#10b981',
-                  color: '#fff', border: 'none', borderRadius: 8,
-                  fontWeight: 600, cursor: 'pointer', width: '100%',
-                }}>Get Directions 🗺️</button>
+                {/* Row 1: View Details + Get Directions side by side */}
+                <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  <button onClick={() => onSpotSelect(spot)} style={{
+                    flex: 1, padding: '7px 6px', background: '#3b82f6',
+                    color: '#fff', border: 'none', borderRadius: 8,
+                    fontWeight: 600, cursor: 'pointer', fontSize: 13,
+                  }}>Details →</button>
+                  <button onClick={() => onNavigate(spot)} style={{
+                    flex: 1, padding: '7px 6px', background: '#10b981',
+                    color: '#fff', border: 'none', borderRadius: 8,
+                    fontWeight: 600, cursor: 'pointer', fontSize: 13,
+                  }}>Directions</button>
+                </div>
+                {/* Row 2: Star save button */}
                 <button onClick={() => {
                   if (isSaved) setSavedSpots(prev => prev.filter(s => s.id !== spot.id))
                   else setSavedSpots(prev => [...prev, { ...spot, category: 'Other' }])
                 }} style={{
-                  marginTop: 6, padding: '6px 12px',
-                  background: isSaved ? '#fee2e2' : '#f9fafb',
-                  color: isSaved ? '#ef4444' : '#6b7280',
-                  border: '1.5px solid #e5e7eb', borderRadius: 8,
-                  fontWeight: 600, cursor: 'pointer', width: '100%',
-                }}>{isSaved ? '❤️ Saved' : '🤍 Save'}</button>
+                  marginTop: 6, padding: '7px 12px', width: '100%',
+                  background: isSaved ? '#fefce8' : '#f9fafb',
+                  color: isSaved ? '#ca8a04' : '#6b7280',
+                  border: `1.5px solid ${isSaved ? '#fde68a' : '#e5e7eb'}`,
+                  borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                }}>
+                  <span style={{ fontSize: 15 }}>{isSaved ? '★' : '☆'}</span>
+                  {isSaved ? 'Saved' : 'Save'}
+                </button>
               </Popup>
             </Marker>
           )
