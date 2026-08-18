@@ -23,7 +23,7 @@ function Countdown({ endTime }) {
   )
 }
 
-export default function OrdersScreen({ orders, onBack }) {
+export default function OrdersScreen({ orders, onDeleteOrder, onBack }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#f9fafb' }}>
       <div style={{
@@ -44,8 +44,16 @@ export default function OrdersScreen({ orders, onBack }) {
             background: '#fff', borderRadius: 16, padding: 20,
             boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
           }}>
-            <div style={{ fontWeight: 700, fontSize: 16, color: '#111827', marginBottom: 4 }}>
-              {order.spot.name}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#111827' }}>
+                {order.spot.name}
+              </div>
+              {onDeleteOrder && (
+                <button onClick={() => onDeleteOrder(order.id)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#d1d5db', fontSize: 18, padding: '0 0 0 8px', lineHeight: 1,
+                }}>×</button>
+              )}
             </div>
             <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
               {order.spot.address || 'Seattle, WA'} · {order.hours} hr{order.hours !== 1 ? 's' : ''}

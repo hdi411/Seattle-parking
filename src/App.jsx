@@ -229,7 +229,11 @@ function AppInner() {
           />
         )}
         {screen === 'receipt' && (
-          <OrdersScreen orders={orders} onBack={() => { setScreen('map'); setNavTab('map') }} />
+          <OrdersScreen
+            orders={orders}
+            onDeleteOrder={id => setOrders(prev => prev.filter(o => o.id !== id))}
+            onBack={() => { setScreen('map'); setNavTab('map') }}
+          />
         )}
         {screen === 'profile' && (
           <ProfileScreen />
